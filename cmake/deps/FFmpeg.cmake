@@ -17,6 +17,8 @@ file(TO_CMAKE_PATH "${NEXUS_FFMPEG_INSTALL_DIR}" NEXUS_FFMPEG_INSTALL_DIR_CMAKE)
 file(TO_CMAKE_PATH "${NEXUS_FFMPEG_SOURCE_DIR}" NEXUS_FFMPEG_SOURCE_DIR_CMAKE)
 
 if(WIN32)
+    set(NEXUS_MSYS2_ENV_PATH "/ucrt64/bin:/usr/bin:/bin" CACHE STRING "PATH used inside MSYS2 bash for FFmpeg source builds")
+
     find_program(
         NEXUS_MSYS2_BASH_EXECUTABLE
         bash
@@ -37,8 +39,10 @@ if(WIN32)
         message(FATAL_ERROR "FFmpeg source builds require NASM. Install NASM in MSYS2 or configure with -DNEXUS_BUILD_FFMPEG=OFF.")
     endif()
 
+    set(NEXUS_MSYS2_COMMAND_ENV "MSYSTEM=UCRT64 MINGW_PREFIX=/ucrt64 PATH='${NEXUS_MSYS2_ENV_PATH}'")
+
     execute_process(
-        COMMAND "${NEXUS_MSYS2_BASH_EXECUTABLE}" -lc "command -v make >/dev/null && command -v nproc >/dev/null && command -v nasm >/dev/null && (command -v gcc >/dev/null || command -v clang >/dev/null || command -v cl >/dev/null)"
+        COMMAND "${NEXUS_MSYS2_BASH_EXECUTABLE}" -lc "${NEXUS_MSYS2_COMMAND_ENV} command -v make >/dev/null && ${NEXUS_MSYS2_COMMAND_ENV} command -v nproc >/dev/null && ${NEXUS_MSYS2_COMMAND_ENV} command -v nasm >/dev/null && (${NEXUS_MSYS2_COMMAND_ENV} command -v gcc >/dev/null || ${NEXUS_MSYS2_COMMAND_ENV} command -v clang >/dev/null || ${NEXUS_MSYS2_COMMAND_ENV} command -v cl >/dev/null)"
         RESULT_VARIABLE NEXUS_FFMPEG_WINDOWS_PREREQ_RESULT
     )
     if(NOT NEXUS_FFMPEG_WINDOWS_PREREQ_RESULT EQUAL 0)
@@ -46,8 +50,10 @@ if(WIN32)
     endif()
 
     set(NEXUS_FFMPEG_CONFIGURE_WRAPPER "${NEXUS_MSYS2_BASH_EXECUTABLE}" -lc)
-    set(NEXUS_FFMPEG_MAKE_COMMAND "${NEXUS_MSYS2_BASH_EXECUTABLE}" -lc "make -j$(nproc)")
-    set(NEXUS_FFMPEG_INSTALL_COMMAND "${NEXUS_MSYS2_BASH_EXECUTABLE}" -lc "make install")
+    set(NEXUS_FFMPEG_CONFIGURE_SCRIPT_PREFIX "")
+    set(NEXUS_FFMPEG_COMMAND_ENV "${NEXUS_MSYS2_COMMAND_ENV}")
+    set(NEXUS_FFMPEG_MAKE_COMMAND "${NEXUS_MSYS2_BASH_EXECUTABLE}" -lc "cd '${NEXUS_FFMPEG_SOURCE_DIR_CMAKE}' && ${NEXUS_FFMPEG_COMMAND_ENV} make -j$(nproc)")
+    set(NEXUS_FFMPEG_INSTALL_COMMAND "${NEXUS_MSYS2_BASH_EXECUTABLE}" -lc "cd '${NEXUS_FFMPEG_SOURCE_DIR_CMAKE}' && ${NEXUS_FFMPEG_COMMAND_ENV} make install")
 else()
     find_program(NEXUS_BASH_EXECUTABLE bash)
     find_program(NEXUS_MAKE_EXECUTABLE make)
@@ -59,6 +65,8 @@ else()
     endif()
 
     set(NEXUS_FFMPEG_CONFIGURE_WRAPPER "${NEXUS_BASH_EXECUTABLE}" -lc)
+    set(NEXUS_FFMPEG_CONFIGURE_SCRIPT_PREFIX "")
+    set(NEXUS_FFMPEG_COMMAND_ENV "")
     set(NEXUS_FFMPEG_MAKE_COMMAND "${NEXUS_MAKE_EXECUTABLE}" -j)
     set(NEXUS_FFMPEG_INSTALL_COMMAND "${NEXUS_MAKE_EXECUTABLE}" install)
 endif()
@@ -69,7 +77,7 @@ if(NEXUS_FFMPEG_ENABLE_GPL)
 endif()
 
 set(NEXUS_FFMPEG_CONFIGURE_SCRIPT
-    "cd '${NEXUS_FFMPEG_SOURCE_DIR_CMAKE}' && ./configure --prefix='${NEXUS_FFMPEG_INSTALL_DIR_CMAKE}' --disable-doc --disable-programs --disable-debug --enable-shared ${NEXUS_FFMPEG_GPL_OPTION} ${NEXUS_FFMPEG_EXTRA_CONFIGURE_OPTIONS}"
+    "${NEXUS_FFMPEG_CONFIGURE_SCRIPT_PREFIX}cd '${NEXUS_FFMPEG_SOURCE_DIR_CMAKE}' && ${NEXUS_FFMPEG_COMMAND_ENV} ./configure --prefix='${NEXUS_FFMPEG_INSTALL_DIR_CMAKE}' --disable-doc --disable-programs --disable-debug --enable-shared ${NEXUS_FFMPEG_GPL_OPTION} ${NEXUS_FFMPEG_EXTRA_CONFIGURE_OPTIONS}"
 )
 
 ExternalProject_Add(

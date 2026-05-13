@@ -79,6 +79,12 @@ cmake -S . -B build/ffmpeg -DNEXUS_BUILD_FFMPEG=ON
 
 OpenSSL source builds require Perl. On Windows they also require `nmake` from a Visual Studio developer prompt. FFmpeg source builds require NASM; on Windows they use MSYS2 bash with `make`, `nproc`, `nasm`, and a visible C compiler, and on Linux they require bash, make, pkg-config, and NASM.
 
+For the Windows FFmpeg source build, the tested MSYS2 UCRT64 package set is:
+
+```powershell
+C:\msys64\usr\bin\bash.exe -lc "pacman -Sy --needed --noconfirm mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-pkgconf make nasm"
+```
+
 ## Install Layout
 
 Install prefixes default to `build/install/<preset>`.
