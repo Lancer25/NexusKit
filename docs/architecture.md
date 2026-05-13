@@ -11,7 +11,7 @@ Recipes are intentionally opt-in. The top-level build only activates heavyweight
 ## Modules
 
 - Current Phase 1: `nexus_core` is the lowest-level module and depends only on C++17 and minimal platform SDKs.
-- Planned: `nexus_log` will provide logging and depend on `nexus_core` and spdlog.
+- Current Phase 3: `nexus_log` provides logging and depends on `nexus_core` plus spdlog as a private backend.
 - Planned: `nexus_common` will provide JSON, XML, crypto, and utility helpers.
 - Planned: `nexus_net` will provide TCP, UDP, HTTP, and WebSocket.
 - Planned: `nexus_usb` will provide USB and UVC device support.

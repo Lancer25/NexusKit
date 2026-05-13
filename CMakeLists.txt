@@ -24,6 +24,7 @@ option(NEXUS_BUILD_OPENSSL "Build OpenSSL from source" OFF)
 option(NEXUS_BUILD_HIDAPI "Build hidapi from source" OFF)
 option(NEXUS_BUILD_PORTAUDIO "Build PortAudio from source" OFF)
 
+option(NEXUS_ENABLE_LOG "Enable nexus_log" ON)
 option(NEXUS_ENABLE_COMMON "Enable nexus_common" OFF)
 option(NEXUS_ENABLE_NET "Enable nexus_net" OFF)
 option(NEXUS_ENABLE_USB "Enable nexus_usb" OFF)
@@ -62,6 +63,10 @@ if(NEXUS_BUILD_FFMPEG)
 endif()
 
 add_subdirectory(src/core)
+
+if(NEXUS_ENABLE_LOG)
+    add_subdirectory(src/log)
+endif()
 
 if(NEXUS_BUILD_TESTS)
     enable_testing()

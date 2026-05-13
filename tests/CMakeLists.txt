@@ -13,3 +13,17 @@ target_link_libraries(nexus_core_tests
 include(CTest)
 include(Catch)
 catch_discover_tests(nexus_core_tests)
+
+if(TARGET nexus::log)
+    add_executable(nexus_log_tests
+        log/logger_tests.cpp
+    )
+
+    target_link_libraries(nexus_log_tests
+        PRIVATE
+            nexus::log
+            Catch2::Catch2WithMain
+    )
+
+    catch_discover_tests(nexus_log_tests)
+endif()
