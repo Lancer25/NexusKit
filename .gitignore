@@ -45,3 +45,13 @@ _deps/
 *.swp
 Thumbs.db
 Desktop.ini
+
+# Legacy HikCommonDll snapshot kept locally as reference material only
+/HikCommonDll-2022.sln
+/HikCommonDll.pro
+/HikCommonDll.sln
+/src/CommonUtils/
+/src/HidTools/
+/src/MediaTools/
+/src/UsbTools/
+/src/WebSocket/
