@@ -25,6 +25,13 @@ public:
             response.set_content(request.get_header_value("X-Agent"), "text/plain");
         });
 
+        server_.Get("/search", [](const httplib::Request& request, httplib::Response& response) {
+            response.status = 200;
+            response.set_content(
+                request.get_param_value("q") + ":" + request.get_param_value("page"),
+                "text/plain");
+        });
+
         server_.Get("/missing", [](const httplib::Request&, httplib::Response& response) {
             response.status = 404;
             response.set_content("missing", "text/plain");
@@ -34,6 +41,16 @@ public:
             response.status = 201;
             response.set_header("X-Trace", request.get_header_value("X-Trace"));
             response.set_content(request.body, request.get_header_value("Content-Type"));
+        });
+
+        server_.Put("/resource", [](const httplib::Request& request, httplib::Response& response) {
+            response.status = 200;
+            response.set_content("put:" + request.body, request.get_header_value("Content-Type"));
+        });
+
+        server_.Delete("/resource", [](const httplib::Request& request, httplib::Response& response) {
+            response.status = 202;
+            response.set_content("delete:" + request.get_header_value("X-Reason"), "text/plain");
         });
 
         port_ = server_.bind_to_any_port("127.0.0.1");
@@ -122,6 +139,54 @@ TEST_CASE("HttpClient POST sends body content type and headers") {
     REQUIRE(response.ok());
     CHECK(response.value().status_code == 201);
     CHECK(response.value().body == R"({"name":"camera"})");
+}
+
+TEST_CASE("HttpClient PUT sends body and content type") {
+    LocalHttpServer server;
+
+    const auto client = nexus::net::HttpClient::create(server.base_url());
+    REQUIRE(client.ok());
+
+    const auto response = client.value().put("/resource", "updated", "text/plain");
+    REQUIRE(response.ok());
+    CHECK(response.value().status_code == 200);
+    CHECK(response.value().body == "put:updated");
+}
+
+TEST_CASE("HttpClient DELETE sends request headers") {
+    LocalHttpServer server;
+
+    const auto client = nexus::net::HttpClient::create(server.base_url());
+    REQUIRE(client.ok());
+
+    const auto response = client.value().del("/resource", {{"X-Reason", "cleanup"}});
+    REQUIRE(response.ok());
+    CHECK(response.value().status_code == 202);
+    CHECK(response.value().body == "delete:cleanup");
+}
+
+TEST_CASE("build_query_path percent encodes query parameters") {
+    const auto path = nexus::net::build_query_path(
+        "/search",
+        {{"q", "usb camera"}, {"page", "1"}});
+
+    CHECK(path == "/search?q=usb%20camera&page=1");
+}
+
+TEST_CASE("HttpClient GET uses query paths") {
+    LocalHttpServer server;
+
+    const auto client = nexus::net::HttpClient::create(server.base_url());
+    REQUIRE(client.ok());
+
+    const auto path = nexus::net::build_query_path(
+        "/search",
+        {{"q", "usb camera"}, {"page", "1"}});
+    const auto response = client.value().get(path);
+
+    REQUIRE(response.ok());
+    CHECK(response.value().status_code == 200);
+    CHECK(response.value().body == "usb camera:1");
 }
 
 TEST_CASE("HttpClient rejects unsupported base URLs") {

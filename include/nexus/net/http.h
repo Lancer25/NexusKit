@@ -21,6 +21,11 @@ struct HttpHeader {
     std::string value;
 };
 
+struct HttpQueryParameter {
+    std::string name;
+    std::string value;
+};
+
 struct HttpResponse {
     int status_code = 0;
     std::string body;
@@ -53,10 +58,24 @@ public:
         std::string_view content_type,
         const std::vector<HttpHeader>& headers = {}) const;
 
+    Result<HttpResponse> put(
+        std::string_view path,
+        std::string_view body,
+        std::string_view content_type,
+        const std::vector<HttpHeader>& headers = {}) const;
+
+    Result<HttpResponse> del(
+        std::string_view path,
+        const std::vector<HttpHeader>& headers = {}) const;
+
 private:
     explicit HttpClient(std::shared_ptr<detail::HttpClientStorage> storage);
 
     std::shared_ptr<detail::HttpClientStorage> storage_;
 };
+
+NEXUS_NET_API std::string build_query_path(
+    std::string_view path,
+    const std::vector<HttpQueryParameter>& parameters);
 
 } // namespace nexus::net

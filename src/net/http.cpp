@@ -2,7 +2,9 @@
 
 #include <cctype>
 #include <exception>
+#include <iomanip>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <utility>
 
@@ -74,6 +76,33 @@ std::string normalize_path(std::string_view path) {
     }
 
     return "/" + std::string(path);
+}
+
+bool is_unreserved_uri_character(unsigned char character) {
+    return (character >= 'A' && character <= 'Z') ||
+        (character >= 'a' && character <= 'z') ||
+        (character >= '0' && character <= '9') ||
+        character == '-' ||
+        character == '.' ||
+        character == '_' ||
+        character == '~';
+}
+
+std::string percent_encode(std::string_view value) {
+    std::ostringstream stream;
+    stream << std::uppercase << std::hex;
+
+    for (const auto character : value) {
+        const auto byte = static_cast<unsigned char>(character);
+        if (is_unreserved_uri_character(byte)) {
+            stream << character;
+            continue;
+        }
+
+        stream << '%' << std::setw(2) << std::setfill('0') << static_cast<int>(byte);
+    }
+
+    return stream.str();
 }
 
 Status error_to_status(httplib::Error error) {
@@ -187,7 +216,60 @@ Result<HttpResponse> HttpClient::post(
     return to_response(*result);
 }
 
+Result<HttpResponse> HttpClient::put(
+    std::string_view path,
+    std::string_view body,
+    std::string_view content_type,
+    const std::vector<HttpHeader>& headers) const {
+    const auto result = storage_->client.Put(
+        normalize_path(path),
+        to_backend_headers(headers),
+        std::string(body),
+        std::string(content_type));
+
+    if (!result) {
+        return error_to_status(result.error());
+    }
+
+    return to_response(*result);
+}
+
+Result<HttpResponse> HttpClient::del(
+    std::string_view path,
+    const std::vector<HttpHeader>& headers) const {
+    const auto result = storage_->client.Delete(normalize_path(path), to_backend_headers(headers));
+    if (!result) {
+        return error_to_status(result.error());
+    }
+
+    return to_response(*result);
+}
+
 HttpClient::HttpClient(std::shared_ptr<detail::HttpClientStorage> storage)
     : storage_(std::move(storage)) {}
+
+std::string build_query_path(
+    std::string_view path,
+    const std::vector<HttpQueryParameter>& parameters) {
+    auto result = normalize_path(path);
+    if (parameters.empty()) {
+        return result;
+    }
+
+    result += result.find('?') == std::string::npos ? '?' : '&';
+
+    bool first = true;
+    for (const auto& parameter : parameters) {
+        if (!first) {
+            result += '&';
+        }
+        first = false;
+        result += percent_encode(parameter.name);
+        result += '=';
+        result += percent_encode(parameter.value);
+    }
+
+    return result;
+}
 
 } // namespace nexus::net
