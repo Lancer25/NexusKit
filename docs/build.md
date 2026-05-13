@@ -85,6 +85,21 @@ For the Windows FFmpeg source build, the tested MSYS2 UCRT64 package set is:
 C:\msys64\usr\bin\bash.exe -lc "pacman -Sy --needed --noconfirm mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-pkgconf make nasm"
 ```
 
+When `NEXUS_BUILD_FFMPEG=ON`, the source recipe exposes imported CMake targets for downstream modules:
+
+```cmake
+FFmpeg::avutil
+FFmpeg::swresample
+FFmpeg::swscale
+FFmpeg::avcodec
+FFmpeg::avformat
+FFmpeg::avfilter
+FFmpeg::avdevice
+FFmpeg::FFmpeg
+```
+
+On Windows, the source-built FFmpeg DLLs and import libraries are installed under `build/<preset>/deps/ffmpeg/bin`.
+
 ## Install Layout
 
 Install prefixes default to `build/install/<preset>`.

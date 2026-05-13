@@ -91,3 +91,89 @@ ExternalProject_Add(
     BUILD_COMMAND ${NEXUS_FFMPEG_MAKE_COMMAND}
     INSTALL_COMMAND ${NEXUS_FFMPEG_INSTALL_COMMAND}
 )
+
+set(NEXUS_FFMPEG_COMPONENTS
+    avutil
+    swresample
+    swscale
+    avcodec
+    avformat
+    avfilter
+    avdevice
+)
+
+set(NEXUS_FFMPEG_INCLUDE_DIR "${NEXUS_FFMPEG_INSTALL_DIR}/include")
+file(MAKE_DIRECTORY "${NEXUS_FFMPEG_INCLUDE_DIR}")
+
+if(WIN32)
+    set(_NEXUS_FFMPEG_RUNTIME_DIR "${NEXUS_FFMPEG_INSTALL_DIR}/bin")
+    set(_NEXUS_FFMPEG_IMPLIB_DIR "${NEXUS_FFMPEG_INSTALL_DIR}/bin")
+    set(_NEXUS_FFMPEG_DLL_SUFFIXES
+        avutil-59
+        swresample-5
+        swscale-8
+        avcodec-61
+        avformat-61
+        avfilter-10
+        avdevice-61
+    )
+    set(NEXUS_FFMPEG_RUNTIME_FILES)
+    foreach(_NEXUS_FFMPEG_DLL_NAME IN LISTS _NEXUS_FFMPEG_DLL_SUFFIXES)
+        list(APPEND NEXUS_FFMPEG_RUNTIME_FILES "${_NEXUS_FFMPEG_RUNTIME_DIR}/${_NEXUS_FFMPEG_DLL_NAME}.dll")
+    endforeach()
+
+    set(_NEXUS_MSYS2_UCRT_RUNTIME_DIR "C:/msys64/ucrt64/bin" CACHE PATH "MSYS2 UCRT64 runtime directory used by FFmpeg")
+    foreach(_NEXUS_FFMPEG_RUNTIME_DEP libiconv-2.dll libwinpthread-1.dll zlib1.dll)
+        if(EXISTS "${_NEXUS_MSYS2_UCRT_RUNTIME_DIR}/${_NEXUS_FFMPEG_RUNTIME_DEP}")
+            list(APPEND NEXUS_FFMPEG_RUNTIME_FILES "${_NEXUS_MSYS2_UCRT_RUNTIME_DIR}/${_NEXUS_FFMPEG_RUNTIME_DEP}")
+        endif()
+    endforeach()
+else()
+    set(_NEXUS_FFMPEG_RUNTIME_DIR "${NEXUS_FFMPEG_INSTALL_DIR}/lib")
+    set(NEXUS_FFMPEG_RUNTIME_FILES)
+endif()
+
+list(LENGTH NEXUS_FFMPEG_COMPONENTS _NEXUS_FFMPEG_COMPONENT_COUNT)
+math(EXPR _NEXUS_FFMPEG_LAST_INDEX "${_NEXUS_FFMPEG_COMPONENT_COUNT} - 1")
+
+foreach(_NEXUS_FFMPEG_INDEX RANGE 0 ${_NEXUS_FFMPEG_LAST_INDEX})
+    list(GET NEXUS_FFMPEG_COMPONENTS ${_NEXUS_FFMPEG_INDEX} _NEXUS_FFMPEG_COMPONENT)
+
+    if(WIN32)
+        add_library(FFmpeg::${_NEXUS_FFMPEG_COMPONENT} SHARED IMPORTED GLOBAL)
+    else()
+        add_library(FFmpeg::${_NEXUS_FFMPEG_COMPONENT} UNKNOWN IMPORTED GLOBAL)
+    endif()
+    add_dependencies(FFmpeg::${_NEXUS_FFMPEG_COMPONENT} nexus_ffmpeg_source)
+
+    set_target_properties(FFmpeg::${_NEXUS_FFMPEG_COMPONENT}
+        PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${NEXUS_FFMPEG_INCLUDE_DIR}"
+    )
+
+    if(WIN32)
+        list(GET _NEXUS_FFMPEG_DLL_SUFFIXES ${_NEXUS_FFMPEG_INDEX} _NEXUS_FFMPEG_DLL_NAME)
+        set_target_properties(FFmpeg::${_NEXUS_FFMPEG_COMPONENT}
+            PROPERTIES
+                IMPORTED_IMPLIB "${_NEXUS_FFMPEG_IMPLIB_DIR}/${_NEXUS_FFMPEG_COMPONENT}.lib"
+                IMPORTED_LOCATION "${_NEXUS_FFMPEG_RUNTIME_DIR}/${_NEXUS_FFMPEG_DLL_NAME}.dll"
+        )
+    else()
+        set_target_properties(FFmpeg::${_NEXUS_FFMPEG_COMPONENT}
+            PROPERTIES
+                IMPORTED_LOCATION "${_NEXUS_FFMPEG_INSTALL_DIR}/lib/lib${_NEXUS_FFMPEG_COMPONENT}.so"
+        )
+    endif()
+endforeach()
+
+add_library(FFmpeg::FFmpeg INTERFACE IMPORTED GLOBAL)
+target_link_libraries(FFmpeg::FFmpeg
+    INTERFACE
+        FFmpeg::avutil
+        FFmpeg::swresample
+        FFmpeg::swscale
+        FFmpeg::avcodec
+        FFmpeg::avformat
+        FFmpeg::avfilter
+        FFmpeg::avdevice
+)
