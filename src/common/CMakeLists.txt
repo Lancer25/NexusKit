@@ -1,7 +1,10 @@
 include(NlohmannJson)
+include(Pugixml)
 
 add_library(nexus_common ${NEXUS_LIBRARY_TYPE}
     json.cpp
+    xml.cpp
+    "${pugixml_SOURCE_DIR}/src/pugixml.cpp"
 )
 
 add_library(nexus::common ALIAS nexus_common)
@@ -19,6 +22,11 @@ target_link_libraries(nexus_common
         nexus::core
     PRIVATE
         $<BUILD_INTERFACE:nlohmann_json::nlohmann_json>
+)
+
+target_include_directories(nexus_common
+    PRIVATE
+        "${pugixml_SOURCE_DIR}/src"
 )
 
 if(NEXUS_BUILD_SHARED)

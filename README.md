@@ -35,7 +35,7 @@ cmake --preset windows-msvc-debug
 
 - Current Phase 1: `nexus_core`: status/result types, versioning, platform foundations.
 - Current Phase 3: `nexus_log`: logging API with a private spdlog backend.
-- Current Phase 3: `nexus_common`: JSON value utilities with a private nlohmann_json backend.
+- Current Phase 3: `nexus_common`: JSON and XML utilities with private nlohmann_json and pugixml backends.
 - Planned: `nexus_net`: TCP, UDP, HTTP, and WebSocket.
 - Planned: `nexus_usb`: USB, UVC, hotplug, and device discovery.
 - Planned: `nexus_hid`: HID access.

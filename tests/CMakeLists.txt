@@ -31,6 +31,7 @@ endif()
 if(TARGET nexus::common)
     add_executable(nexus_common_tests
         common/json_tests.cpp
+        common/xml_tests.cpp
     )
 
     target_link_libraries(nexus_common_tests
