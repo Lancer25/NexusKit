@@ -80,6 +80,7 @@ cmake -S . -B build/ffmpeg -DNEXUS_BUILD_FFMPEG=ON
 OpenSSL source builds require Perl. On Windows they also require `nmake` from a Visual Studio developer prompt. FFmpeg source builds require NASM; on Windows they use MSYS2 bash with `make`, `nproc`, `nasm`, and a visible C compiler, and on Linux they require bash, make, pkg-config, and NASM.
 
 `nexus_log` is enabled by default through `NEXUS_ENABLE_LOG=ON` and uses spdlog as a private backend.
+`nexus_common` is enabled by default through `NEXUS_ENABLE_COMMON=ON` and uses nlohmann_json as a private backend for JSON utilities.
 
 For the Windows FFmpeg source build, the tested MSYS2 UCRT64 package set is:
 

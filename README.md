@@ -6,7 +6,7 @@ The project is a new implementation inspired by earlier internal component-libra
 
 ## Status
 
-NexusKit is in early development. The first milestone establishes the CMake project skeleton, `nexus_core`, tests, examples, and documentation.
+NexusKit is in early development. The current milestone establishes the CMake project skeleton, `nexus_core`, `nexus_log`, `nexus_common`, tests, examples, and documentation.
 
 ## Requirements
 
@@ -34,8 +34,8 @@ cmake --preset windows-msvc-debug
 ## Modules
 
 - Current Phase 1: `nexus_core`: status/result types, versioning, platform foundations.
-- Planned: `nexus_log`: asynchronous logging.
-- Planned: `nexus_common`: JSON, XML, crypto, and common data utilities.
+- Current Phase 3: `nexus_log`: logging API with a private spdlog backend.
+- Current Phase 3: `nexus_common`: JSON value utilities with a private nlohmann_json backend.
 - Planned: `nexus_net`: TCP, UDP, HTTP, and WebSocket.
 - Planned: `nexus_usb`: USB, UVC, hotplug, and device discovery.
 - Planned: `nexus_hid`: HID access.

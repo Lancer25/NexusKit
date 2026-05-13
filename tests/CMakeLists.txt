@@ -27,3 +27,17 @@ if(TARGET nexus::log)
 
     catch_discover_tests(nexus_log_tests)
 endif()
+
+if(TARGET nexus::common)
+    add_executable(nexus_common_tests
+        common/json_tests.cpp
+    )
+
+    target_link_libraries(nexus_common_tests
+        PRIVATE
+            nexus::common
+            Catch2::Catch2WithMain
+    )
+
+    catch_discover_tests(nexus_common_tests)
+endif()
