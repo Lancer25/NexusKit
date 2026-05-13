@@ -45,6 +45,22 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
+if(NEXUS_BUILD_OPENSSL)
+    include(OpenSSLSource)
+endif()
+
+if(NEXUS_BUILD_HIDAPI)
+    include(Hidapi)
+endif()
+
+if(NEXUS_BUILD_PORTAUDIO)
+    include(PortAudio)
+endif()
+
+if(NEXUS_BUILD_FFMPEG)
+    include(FFmpeg)
+endif()
+
 add_subdirectory(src/core)
 
 if(NEXUS_BUILD_TESTS)

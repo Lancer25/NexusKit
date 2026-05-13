@@ -48,7 +48,7 @@ git config --global http.sslBackend openssl
 
 Dependency recipes live under `cmake/deps`.
 
-By default, `NEXUS_BUILD_DEPS=ON`, so NexusKit may fetch or build declared dependencies from source. The current Phase 2A recipe is Catch2 for tests.
+By default, `NEXUS_BUILD_DEPS=ON`, so NexusKit may fetch or build declared dependencies from source. The default build currently fetches only dependencies that are actually needed by enabled targets, such as Catch2 when `NEXUS_BUILD_TESTS=ON`.
 
 To disable source fetching, configure with `-DNEXUS_BUILD_DEPS=OFF` and provide the required packages through CMake package discovery:
 
@@ -61,6 +61,23 @@ When dependency fetching is enabled, Git-based recipes use `NEXUS_GIT_CONFIG_ARG
 ```cmake
 http.sslBackend=openssl
 ```
+
+If `HTTP_PROXY` or `HTTPS_PROXY` is set in the environment, CMake copies it into `NEXUS_GIT_PROXY` and passes it to dependency clones. You can also set it explicitly:
+
+```powershell
+cmake -S . -B build/proxy -DNEXUS_GIT_PROXY=http://127.0.0.1:7897
+```
+
+Production dependency recipes are available for spdlog, nlohmann_json, pugixml, asio, cpp-httplib, websocketpp, hidapi, PortAudio, OpenSSL, and FFmpeg. Lightweight dependencies are included by future modules as needed. Heavy source builds are opt-in:
+
+```powershell
+cmake -S . -B build/hidapi -DNEXUS_BUILD_HIDAPI=ON
+cmake -S . -B build/portaudio -DNEXUS_BUILD_PORTAUDIO=ON
+cmake -S . -B build/openssl -DNEXUS_BUILD_OPENSSL=ON
+cmake -S . -B build/ffmpeg -DNEXUS_BUILD_FFMPEG=ON
+```
+
+OpenSSL source builds require Perl. On Windows they also require `nmake` from a Visual Studio developer prompt. FFmpeg source builds require NASM; on Windows they use MSYS2 bash with `make`, `nproc`, `nasm`, and a visible C compiler, and on Linux they require bash, make, pkg-config, and NASM.
 
 ## Install Layout
 

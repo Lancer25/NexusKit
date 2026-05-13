@@ -9,7 +9,7 @@ if(NEXUS_BUILD_DEPS)
         Catch2
         GIT_REPOSITORY https://github.com/catchorg/Catch2.git
         GIT_TAG abb467ecd60fae9a727afca033c1eb5d20af2c12
-        GIT_CONFIG ${NEXUS_GIT_CONFIG_ARGS}
+        GIT_CONFIG ${NEXUS_GIT_EFFECTIVE_CONFIG_ARGS}
     )
 
     FetchContent_MakeAvailable(Catch2)
