@@ -45,6 +45,22 @@ bool contains_space(std::string_view value) {
     return false;
 }
 
+bool equals_ignore_case(std::string_view lhs, std::string_view rhs) {
+    if (lhs.size() != rhs.size()) {
+        return false;
+    }
+
+    for (std::size_t index = 0; index < lhs.size(); ++index) {
+        const auto left = static_cast<unsigned char>(lhs[index]);
+        const auto right = static_cast<unsigned char>(rhs[index]);
+        if (std::tolower(left) != std::tolower(right)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 Status validate_base_url(std::string_view base_url) {
     if (!starts_with(base_url, "http://")) {
         return Status::invalid_argument("Only http:// base URLs are supported");
@@ -157,6 +173,20 @@ std::shared_ptr<detail::HttpClientStorage> make_storage(
 }
 
 } // namespace
+
+bool HttpResponse::ok() const {
+    return status_code >= 200 && status_code < 300;
+}
+
+Result<std::string> HttpResponse::header(std::string_view name) const {
+    for (const auto& item : headers) {
+        if (equals_ignore_case(item.name, name)) {
+            return item.value;
+        }
+    }
+
+    return Status::not_found("HTTP response header not found: " + std::string(name));
+}
 
 HttpClient::HttpClient(const HttpClient& other)
     : storage_(make_storage(other.storage_->base_url, other.storage_->options)) {}

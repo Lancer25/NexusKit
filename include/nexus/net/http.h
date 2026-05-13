@@ -30,6 +30,9 @@ struct HttpResponse {
     int status_code = 0;
     std::string body;
     std::vector<HttpHeader> headers;
+
+    bool ok() const;
+    Result<std::string> header(std::string_view name) const;
 };
 
 struct HttpClientOptions {

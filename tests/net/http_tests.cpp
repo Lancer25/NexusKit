@@ -98,6 +98,11 @@ TEST_CASE("HttpClient GET returns status body and headers") {
     CHECK(response.value().status_code == 200);
     CHECK(response.value().body == "ok");
     REQUIRE(response.value().headers.size() >= 1);
+    CHECK(response.value().ok());
+
+    const auto header = response.value().header("x-nexus");
+    REQUIRE(header.ok());
+    CHECK(header.value() == "ready");
 }
 
 TEST_CASE("HttpClient GET returns HTTP error responses") {
@@ -110,6 +115,21 @@ TEST_CASE("HttpClient GET returns HTTP error responses") {
     REQUIRE(response.ok());
     CHECK(response.value().status_code == 404);
     CHECK(response.value().body == "missing");
+    CHECK_FALSE(response.value().ok());
+}
+
+TEST_CASE("HttpResponse reports missing headers") {
+    LocalHttpServer server;
+
+    const auto client = nexus::net::HttpClient::create(server.base_url());
+    REQUIRE(client.ok());
+
+    const auto response = client.value().get("/health");
+    REQUIRE(response.ok());
+
+    const auto header = response.value().header("X-Missing");
+    REQUIRE_FALSE(header.ok());
+    CHECK(header.status().code() == nexus::StatusCode::kNotFound);
 }
 
 TEST_CASE("HttpClient GET sends request headers") {

@@ -6,7 +6,7 @@
 
 - `nexus::net::HttpHeader`: request or response header name/value pair.
 - `nexus::net::HttpQueryParameter`: query parameter name/value pair.
-- `nexus::net::HttpResponse`: HTTP status code, body, and response headers.
+- `nexus::net::HttpResponse`: HTTP status code, body, response headers, 2xx status helper, and case-insensitive header lookup.
 - `nexus::net::HttpClientOptions`: connection, read, and write timeout values.
 - `nexus::net::HttpClient`: copyable HTTP client handle.
 - `nexus::net::HttpClient::create`: validates a base URL and returns `nexus::Result<HttpClient>`.
@@ -28,4 +28,5 @@ The current backend is cpp-httplib. It is included only from implementation and 
 
 - Unsupported or malformed base URLs return `StatusCode::kInvalidArgument`.
 - Transport failures return `StatusCode::kUnavailable` where possible.
+- Missing response headers return `StatusCode::kNotFound`.
 - HTTP status codes such as 404 are returned as successful `HttpResponse` values because the request completed at the protocol level.
