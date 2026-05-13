@@ -43,7 +43,15 @@ public:
 
     static Result<HttpClient> create(std::string base_url, HttpClientOptions options = {});
 
-    Result<HttpResponse> get(std::string_view path) const;
+    Result<HttpResponse> get(
+        std::string_view path,
+        const std::vector<HttpHeader>& headers = {}) const;
+
+    Result<HttpResponse> post(
+        std::string_view path,
+        std::string_view body,
+        std::string_view content_type,
+        const std::vector<HttpHeader>& headers = {}) const;
 
 private:
     explicit HttpClient(std::shared_ptr<detail::HttpClientStorage> storage);

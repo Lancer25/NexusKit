@@ -100,6 +100,27 @@ Status error_to_status(httplib::Error error) {
     }
 }
 
+httplib::Headers to_backend_headers(const std::vector<HttpHeader>& headers) {
+    httplib::Headers backend_headers;
+    for (const auto& header : headers) {
+        backend_headers.emplace(header.name, header.value);
+    }
+    return backend_headers;
+}
+
+HttpResponse to_response(const httplib::Response& backend_response) {
+    HttpResponse response;
+    response.status_code = backend_response.status;
+    response.body = backend_response.body;
+    response.headers.reserve(backend_response.headers.size());
+
+    for (const auto& header : backend_response.headers) {
+        response.headers.push_back(HttpHeader{header.first, header.second});
+    }
+
+    return response;
+}
+
 std::shared_ptr<detail::HttpClientStorage> make_storage(
     std::string base_url,
     HttpClientOptions options) {
@@ -137,22 +158,33 @@ Result<HttpClient> HttpClient::create(std::string base_url, HttpClientOptions op
     }
 }
 
-Result<HttpResponse> HttpClient::get(std::string_view path) const {
-    const auto result = storage_->client.Get(normalize_path(path));
+Result<HttpResponse> HttpClient::get(
+    std::string_view path,
+    const std::vector<HttpHeader>& headers) const {
+    const auto result = storage_->client.Get(normalize_path(path), to_backend_headers(headers));
     if (!result) {
         return error_to_status(result.error());
     }
 
-    HttpResponse response;
-    response.status_code = result->status;
-    response.body = result->body;
-    response.headers.reserve(result->headers.size());
+    return to_response(*result);
+}
 
-    for (const auto& header : result->headers) {
-        response.headers.push_back(HttpHeader{header.first, header.second});
+Result<HttpResponse> HttpClient::post(
+    std::string_view path,
+    std::string_view body,
+    std::string_view content_type,
+    const std::vector<HttpHeader>& headers) const {
+    const auto result = storage_->client.Post(
+        normalize_path(path),
+        to_backend_headers(headers),
+        std::string(body),
+        std::string(content_type));
+
+    if (!result) {
+        return error_to_status(result.error());
     }
 
-    return response;
+    return to_response(*result);
 }
 
 HttpClient::HttpClient(std::shared_ptr<detail::HttpClientStorage> storage)

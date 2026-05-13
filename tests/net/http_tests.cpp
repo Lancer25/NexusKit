@@ -20,9 +20,20 @@ public:
             response.set_content("ok", "text/plain");
         });
 
+        server_.Get("/agent", [](const httplib::Request& request, httplib::Response& response) {
+            response.status = 200;
+            response.set_content(request.get_header_value("X-Agent"), "text/plain");
+        });
+
         server_.Get("/missing", [](const httplib::Request&, httplib::Response& response) {
             response.status = 404;
             response.set_content("missing", "text/plain");
+        });
+
+        server_.Post("/echo", [](const httplib::Request& request, httplib::Response& response) {
+            response.status = 201;
+            response.set_header("X-Trace", request.get_header_value("X-Trace"));
+            response.set_content(request.body, request.get_header_value("Content-Type"));
         });
 
         port_ = server_.bind_to_any_port("127.0.0.1");
@@ -82,6 +93,35 @@ TEST_CASE("HttpClient GET returns HTTP error responses") {
     REQUIRE(response.ok());
     CHECK(response.value().status_code == 404);
     CHECK(response.value().body == "missing");
+}
+
+TEST_CASE("HttpClient GET sends request headers") {
+    LocalHttpServer server;
+
+    const auto client = nexus::net::HttpClient::create(server.base_url());
+    REQUIRE(client.ok());
+
+    const auto response = client.value().get("/agent", {{"X-Agent", "nexus-test"}});
+    REQUIRE(response.ok());
+    CHECK(response.value().status_code == 200);
+    CHECK(response.value().body == "nexus-test");
+}
+
+TEST_CASE("HttpClient POST sends body content type and headers") {
+    LocalHttpServer server;
+
+    const auto client = nexus::net::HttpClient::create(server.base_url());
+    REQUIRE(client.ok());
+
+    const auto response = client.value().post(
+        "/echo",
+        R"({"name":"camera"})",
+        "application/json",
+        {{"X-Trace", "phase-4b"}});
+
+    REQUIRE(response.ok());
+    CHECK(response.value().status_code == 201);
+    CHECK(response.value().body == R"({"name":"camera"})");
 }
 
 TEST_CASE("HttpClient rejects unsupported base URLs") {
