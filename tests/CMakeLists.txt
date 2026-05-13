@@ -42,3 +42,20 @@ if(TARGET nexus::common)
 
     catch_discover_tests(nexus_common_tests)
 endif()
+
+if(TARGET nexus::net)
+    include(CppHttplib)
+
+    add_executable(nexus_net_tests
+        net/http_tests.cpp
+    )
+
+    target_link_libraries(nexus_net_tests
+        PRIVATE
+            nexus::net
+            httplib::httplib
+            Catch2::Catch2WithMain
+    )
+
+    catch_discover_tests(nexus_net_tests)
+endif()

@@ -1,0 +1,48 @@
+include(CppHttplib)
+
+add_library(nexus_net ${NEXUS_LIBRARY_TYPE}
+    http.cpp
+)
+
+add_library(nexus::net ALIAS nexus_net)
+
+target_include_directories(nexus_net
+    PUBLIC
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
+target_compile_features(nexus_net PUBLIC cxx_std_17)
+
+target_link_libraries(nexus_net
+    PUBLIC
+        nexus::core
+    PRIVATE
+        $<BUILD_INTERFACE:httplib::httplib>
+)
+
+if(NEXUS_BUILD_SHARED)
+    target_compile_definitions(nexus_net
+        PUBLIC NEXUS_NET_SHARED
+        PRIVATE NEXUS_NET_BUILDING_LIBRARY
+    )
+endif()
+
+if(MSVC)
+    target_compile_options(nexus_net PRIVATE /W4 /permissive-)
+else()
+    target_compile_options(nexus_net PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+set_target_properties(nexus_net PROPERTIES
+    OUTPUT_NAME nexus_net
+    EXPORT_NAME net
+)
+
+install(
+    TARGETS nexus_net
+    EXPORT NexusKitTargets
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+)

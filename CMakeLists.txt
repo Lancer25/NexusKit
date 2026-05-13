@@ -26,7 +26,7 @@ option(NEXUS_BUILD_PORTAUDIO "Build PortAudio from source" OFF)
 
 option(NEXUS_ENABLE_LOG "Enable nexus_log" ON)
 option(NEXUS_ENABLE_COMMON "Enable nexus_common" ON)
-option(NEXUS_ENABLE_NET "Enable nexus_net" OFF)
+option(NEXUS_ENABLE_NET "Enable nexus_net" ON)
 option(NEXUS_ENABLE_USB "Enable nexus_usb" OFF)
 option(NEXUS_ENABLE_HID "Enable nexus_hid" OFF)
 option(NEXUS_ENABLE_MEDIA "Enable nexus_media" OFF)
@@ -70,6 +70,10 @@ endif()
 
 if(NEXUS_ENABLE_COMMON)
     add_subdirectory(src/common)
+endif()
+
+if(NEXUS_ENABLE_NET)
+    add_subdirectory(src/net)
 endif()
 
 if(NEXUS_BUILD_TESTS)
