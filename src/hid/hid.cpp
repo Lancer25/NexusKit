@@ -5,6 +5,7 @@
 #include <cwchar>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <hidapi.h>
@@ -20,6 +21,40 @@
 #include <nexus/log/logger.h>
 
 namespace nexus::hid {
+
+namespace detail {
+
+class HidDeviceStorage {
+public:
+    explicit HidDeviceStorage(hid_device* device) : device_(device) {}
+
+    HidDeviceStorage(const HidDeviceStorage&) = delete;
+    HidDeviceStorage& operator=(const HidDeviceStorage&) = delete;
+
+    ~HidDeviceStorage() {
+        close();
+    }
+
+    hid_device* device() const {
+        return device_;
+    }
+
+    bool is_open() const {
+        return device_ != nullptr;
+    }
+
+    void close() {
+        if (device_ != nullptr) {
+            hid_close(device_);
+            device_ = nullptr;
+        }
+    }
+
+private:
+    hid_device* device_ = nullptr;
+};
+
+} // namespace detail
 
 namespace {
 
@@ -80,6 +115,14 @@ struct HidEnumerationDeleter {
 
 using HidEnumeration = std::unique_ptr<hid_device_info, HidEnumerationDeleter>;
 
+Status closed_status() {
+    return Status(StatusCode::kFailedPrecondition, "HID device is not open");
+}
+
+Status io_status(std::string message) {
+    return Status(StatusCode::kUnavailable, std::move(message));
+}
+
 } // namespace
 
 Result<std::vector<HidDeviceInfo>> enumerate_devices(HidEnumerationFilter filter) {
@@ -103,5 +146,136 @@ Result<std::vector<HidDeviceInfo>> enumerate_devices(HidEnumerationFilter filter
     log::write(log::Level::info, "HID enumerate count=" + std::to_string(devices.size()));
     return devices;
 }
+
+HidDevice::HidDevice() = default;
+
+HidDevice::HidDevice(HidDevice&& other) noexcept = default;
+
+HidDevice& HidDevice::operator=(HidDevice&& other) noexcept = default;
+
+HidDevice::~HidDevice() = default;
+
+Result<HidDevice> HidDevice::open_path(std::string path) {
+    if (path.empty()) {
+        return Status::invalid_argument("HID path cannot be empty");
+    }
+
+    if (hid_init() != 0) {
+        log::write(log::Level::warn, "HID initialization failed");
+        return Status::internal("HID initialization failed");
+    }
+
+    log::write(log::Level::debug, "HID open path=" + path);
+    auto* handle = hid_open_path(path.c_str());
+    if (handle == nullptr) {
+        log::write(log::Level::warn, "HID open failed path=" + path);
+        return io_status("HID open failed");
+    }
+
+    log::write(log::Level::info, "HID opened path=" + path);
+    return HidDevice(std::make_unique<detail::HidDeviceStorage>(handle));
+}
+
+bool HidDevice::is_open() const {
+    return storage_ && storage_->is_open();
+}
+
+Status HidDevice::write(const std::vector<std::uint8_t>& report) {
+    if (report.empty()) {
+        return Status::invalid_argument("HID write report cannot be empty");
+    }
+
+    if (!is_open()) {
+        return closed_status();
+    }
+
+    const auto written = hid_write(storage_->device(), report.data(), report.size());
+    if (written < 0) {
+        log::write(log::Level::warn, "HID write failed");
+        return io_status("HID write failed");
+    }
+
+    log::write(log::Level::debug, "HID write bytes=" + std::to_string(written));
+    return Status::ok_status();
+}
+
+Result<std::vector<std::uint8_t>> HidDevice::read(std::size_t max_bytes, int timeout_ms) {
+    if (max_bytes == 0) {
+        return Status::invalid_argument("HID read size must be greater than zero");
+    }
+
+    if (!is_open()) {
+        return closed_status();
+    }
+
+    std::vector<std::uint8_t> buffer(max_bytes);
+    const auto bytes_read = timeout_ms >= 0
+        ? hid_read_timeout(storage_->device(), buffer.data(), buffer.size(), timeout_ms)
+        : hid_read(storage_->device(), buffer.data(), buffer.size());
+    if (bytes_read < 0) {
+        log::write(log::Level::warn, "HID read failed");
+        return io_status("HID read failed");
+    }
+
+    buffer.resize(static_cast<std::size_t>(bytes_read));
+    log::write(log::Level::debug, "HID read bytes=" + std::to_string(bytes_read));
+    return buffer;
+}
+
+Status HidDevice::send_feature_report(const std::vector<std::uint8_t>& report) {
+    if (report.empty()) {
+        return Status::invalid_argument("HID feature report cannot be empty");
+    }
+
+    if (!is_open()) {
+        return closed_status();
+    }
+
+    const auto written = hid_send_feature_report(storage_->device(), report.data(), report.size());
+    if (written < 0) {
+        log::write(log::Level::warn, "HID send feature report failed");
+        return io_status("HID send feature report failed");
+    }
+
+    log::write(log::Level::debug, "HID send feature report bytes=" + std::to_string(written));
+    return Status::ok_status();
+}
+
+Result<std::vector<std::uint8_t>> HidDevice::get_feature_report(
+    std::uint8_t report_id,
+    std::size_t max_bytes) {
+    if (max_bytes == 0) {
+        return Status::invalid_argument("HID feature report size must be greater than zero");
+    }
+
+    if (!is_open()) {
+        return closed_status();
+    }
+
+    std::vector<std::uint8_t> buffer(max_bytes);
+    buffer[0] = report_id;
+    const auto bytes_read = hid_get_feature_report(storage_->device(), buffer.data(), buffer.size());
+    if (bytes_read < 0) {
+        log::write(log::Level::warn, "HID get feature report failed");
+        return io_status("HID get feature report failed");
+    }
+
+    buffer.resize(static_cast<std::size_t>(bytes_read));
+    log::write(log::Level::debug, "HID get feature report bytes=" + std::to_string(bytes_read));
+    return buffer;
+}
+
+Status HidDevice::close() {
+    if (storage_) {
+        storage_->close();
+        storage_.reset();
+        log::write(log::Level::debug, "HID close");
+    }
+
+    return Status::ok_status();
+}
+
+HidDevice::HidDevice(std::unique_ptr<detail::HidDeviceStorage> storage)
+    : storage_(std::move(storage)) {}
 
 } // namespace nexus::hid
