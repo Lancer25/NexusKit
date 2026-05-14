@@ -46,11 +46,13 @@ endif()
 if(TARGET nexus::net)
     include(CppHttplib)
     include(Asio)
+    include(Websocketpp)
 
     add_executable(nexus_net_tests
         net/http_tests.cpp
         net/tcp_tests.cpp
         net/udp_tests.cpp
+        net/websocket_tests.cpp
     )
 
     target_link_libraries(nexus_net_tests
@@ -59,6 +61,7 @@ if(TARGET nexus::net)
             nexus::log
             asio::asio
             httplib::httplib
+            websocketpp::websocketpp
             Catch2::Catch2WithMain
     )
 

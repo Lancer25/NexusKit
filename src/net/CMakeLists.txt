@@ -1,10 +1,12 @@
 include(CppHttplib)
 include(Asio)
+include(Websocketpp)
 
 add_library(nexus_net ${NEXUS_LIBRARY_TYPE}
     http.cpp
     tcp.cpp
     udp.cpp
+    websocket_client.cpp
 )
 
 add_library(nexus::net ALIAS nexus_net)
@@ -24,6 +26,7 @@ target_link_libraries(nexus_net
         nexus::log
         $<BUILD_INTERFACE:asio::asio>
         $<BUILD_INTERFACE:httplib::httplib>
+        $<BUILD_INTERFACE:websocketpp::websocketpp>
 )
 
 if(NEXUS_BUILD_SHARED)

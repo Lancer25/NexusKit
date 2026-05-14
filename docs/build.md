@@ -81,7 +81,7 @@ OpenSSL source builds require Perl. On Windows they also require `nmake` from a 
 
 `nexus_log` is enabled by default through `NEXUS_ENABLE_LOG=ON` and uses spdlog as a private backend.
 `nexus_common` is enabled by default through `NEXUS_ENABLE_COMMON=ON` and uses nlohmann_json and pugixml as private backends for JSON and XML utilities.
-`nexus_net` is enabled by default through `NEXUS_ENABLE_NET=ON` and uses cpp-httplib and standalone Asio as private backends for HTTP, TCP, and UDP utilities. It depends on `nexus_log` for internal diagnostics, so `NEXUS_ENABLE_NET=ON` requires `NEXUS_ENABLE_LOG=ON`.
+`nexus_net` is enabled by default through `NEXUS_ENABLE_NET=ON` and uses cpp-httplib, standalone Asio, and websocketpp as private backends for HTTP, TCP, UDP, and WebSocket utilities. It depends on `nexus_log` for internal diagnostics, so `NEXUS_ENABLE_NET=ON` requires `NEXUS_ENABLE_LOG=ON`.
 
 For the Windows FFmpeg source build, the tested MSYS2 UCRT64 package set is:
 
