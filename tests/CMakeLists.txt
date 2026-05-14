@@ -81,3 +81,17 @@ if(TARGET nexus::hid)
 
     catch_discover_tests(nexus_hid_tests)
 endif()
+
+if(TARGET nexus::usb)
+    add_executable(nexus_usb_tests
+        usb/usb_tests.cpp
+    )
+
+    target_link_libraries(nexus_usb_tests
+        PRIVATE
+            nexus::usb
+            Catch2::Catch2WithMain
+    )
+
+    catch_discover_tests(nexus_usb_tests)
+endif()

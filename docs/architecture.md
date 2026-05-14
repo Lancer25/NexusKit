@@ -14,7 +14,7 @@ Recipes are intentionally opt-in. The top-level build only activates heavyweight
 - Current Phase 3: `nexus_log` provides logging and depends on `nexus_core` plus spdlog as a private backend.
 - Current Phase 3: `nexus_common` provides shared utility components such as JSON and XML and depends on `nexus_core` plus private backend libraries.
 - Current Phase 4: `nexus_net` provides networking components. It currently includes HTTP, synchronous TCP, synchronous UDP, and synchronous WebSocket utilities, with diagnostics routed through `nexus_log`.
-- Planned: `nexus_usb` will provide USB and UVC device support.
+- Current Phase 5: `nexus_usb` provides a USB device discovery facade backed by HID discovery and will expand toward UVC and hotplug support.
 - Current Phase 5: `nexus_hid` provides HID device enumeration through a private hidapi backend.
 - Planned: `nexus_media` will provide FFmpeg-based media processing.
 - Planned: `nexus_screen` will provide desktop and window capture.

@@ -40,6 +40,14 @@ if(NEXUS_ENABLE_HID AND NOT NEXUS_ENABLE_LOG)
     message(FATAL_ERROR "NEXUS_ENABLE_HID requires NEXUS_ENABLE_LOG for NexusKit diagnostic logging.")
 endif()
 
+if(NEXUS_ENABLE_USB AND NOT NEXUS_ENABLE_LOG)
+    message(FATAL_ERROR "NEXUS_ENABLE_USB requires NEXUS_ENABLE_LOG for NexusKit diagnostic logging.")
+endif()
+
+if(NEXUS_ENABLE_USB AND NOT NEXUS_ENABLE_HID)
+    message(FATAL_ERROR "NEXUS_ENABLE_USB requires NEXUS_ENABLE_HID for HID-backed device discovery.")
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -90,6 +98,10 @@ endif()
 
 if(NEXUS_ENABLE_HID)
     add_subdirectory(src/hid)
+endif()
+
+if(NEXUS_ENABLE_USB)
+    add_subdirectory(src/usb)
 endif()
 
 if(NEXUS_BUILD_TESTS)
