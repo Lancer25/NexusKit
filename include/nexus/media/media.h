@@ -14,6 +14,7 @@ namespace nexus::media {
 
 namespace detail {
 class MediaReaderStorage;
+class MediaDecoderStorage;
 }
 
 struct FfmpegBackendInfo {
@@ -58,6 +59,17 @@ struct MediaPacket {
     std::vector<std::uint8_t> data;
 };
 
+struct MediaFrame {
+    int stream_index = -1;
+    MediaStreamType type = MediaStreamType::unknown;
+    std::int64_t pts = 0;
+    int width = 0;
+    int height = 0;
+    int sample_rate = 0;
+    int channels = 0;
+    std::vector<std::uint8_t> data;
+};
+
 NEXUS_MEDIA_API FfmpegBackendInfo ffmpeg_backend_info();
 NEXUS_MEDIA_API Result<MediaProbeInfo> probe_media(const std::filesystem::path& path);
 
@@ -80,6 +92,27 @@ private:
     explicit MediaReader(std::unique_ptr<detail::MediaReaderStorage> storage);
 
     std::unique_ptr<detail::MediaReaderStorage> storage_;
+};
+
+class NEXUS_MEDIA_API MediaDecoder {
+public:
+    MediaDecoder();
+    MediaDecoder(const MediaDecoder&) = delete;
+    MediaDecoder& operator=(const MediaDecoder&) = delete;
+    MediaDecoder(MediaDecoder&& other) noexcept;
+    MediaDecoder& operator=(MediaDecoder&& other) noexcept;
+    ~MediaDecoder();
+
+    static Result<MediaDecoder> open(const std::filesystem::path& path);
+
+    bool is_open() const;
+    Result<MediaFrame> read_frame();
+    Status close();
+
+private:
+    explicit MediaDecoder(std::unique_ptr<detail::MediaDecoderStorage> storage);
+
+    std::unique_ptr<detail::MediaDecoderStorage> storage_;
 };
 
 } // namespace nexus::media

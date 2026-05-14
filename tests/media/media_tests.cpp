@@ -218,3 +218,61 @@ TEST_CASE("Media reader reads packets when FFmpeg backend is available") {
     CHECK(reader.value().close().ok());
     CHECK_FALSE(reader.value().is_open());
 }
+
+TEST_CASE("Media decoder rejects empty paths") {
+    const auto decoder = nexus::media::MediaDecoder::open({});
+
+    REQUIRE_FALSE(decoder.ok());
+    CHECK(decoder.status().code() == nexus::StatusCode::kInvalidArgument);
+}
+
+TEST_CASE("Media decoder reports missing files") {
+    const auto path = test_media_path("missing-decoder.media");
+
+    const auto decoder = nexus::media::MediaDecoder::open(path);
+
+    REQUIRE_FALSE(decoder.ok());
+    CHECK(decoder.status().code() == nexus::StatusCode::kNotFound);
+}
+
+TEST_CASE("Media decoder reports unavailable backend before opening") {
+    const auto path = test_media_path("decoder-placeholder.media");
+    {
+        std::ofstream file(path, std::ios::binary);
+        file << "not a real media file";
+    }
+
+    const auto backend = nexus::media::ffmpeg_backend_info();
+    const auto decoder = nexus::media::MediaDecoder::open(path);
+
+    if (backend.available) {
+        REQUIRE_FALSE(decoder.ok());
+        CHECK(decoder.status().code() == nexus::StatusCode::kInvalidArgument);
+    } else {
+        REQUIRE_FALSE(decoder.ok());
+        CHECK(decoder.status().code() == nexus::StatusCode::kFailedPrecondition);
+    }
+}
+
+TEST_CASE("Media decoder reads audio frames when FFmpeg backend is available") {
+    const auto backend = nexus::media::ffmpeg_backend_info();
+    if (!backend.available) {
+        return;
+    }
+
+    const auto path = write_pcm_wav_fixture("decoder-tone.wav");
+
+    auto decoder = nexus::media::MediaDecoder::open(path);
+    REQUIRE(decoder.ok());
+    CHECK(decoder.value().is_open());
+
+    const auto frame = decoder.value().read_frame();
+    REQUIRE(frame.ok());
+    CHECK(frame.value().type == nexus::media::MediaStreamType::audio);
+    CHECK(frame.value().sample_rate == 8000);
+    CHECK(frame.value().channels == 1);
+    CHECK_FALSE(frame.value().data.empty());
+
+    CHECK(decoder.value().close().ok());
+    CHECK_FALSE(decoder.value().is_open());
+}
