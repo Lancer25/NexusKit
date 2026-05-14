@@ -6,7 +6,7 @@ The project is a new implementation inspired by earlier internal component-libra
 
 ## Status
 
-NexusKit is in early development. The current milestone establishes the CMake project skeleton, `nexus_core`, `nexus_log`, `nexus_common`, `nexus_net`, `nexus_hid`, `nexus_usb`, the first `nexus_media` slice, tests, examples, and documentation.
+NexusKit is in early development. The current milestone establishes the CMake project skeleton, `nexus_core`, `nexus_log`, `nexus_common`, `nexus_net`, `nexus_hid`, `nexus_usb`, the first `nexus_media` slice, Windows primary-display screen capture, tests, examples, and documentation.
 
 ## Requirements
 
@@ -40,4 +40,4 @@ cmake --preset windows-msvc-debug
 - Current Phase 5: `nexus_usb`: USB device discovery and HID-backed report I/O facade.
 - Current Phase 5: `nexus_hid`: HID device enumeration with a private hidapi backend.
 - Current Phase 6: `nexus_media`: media backend discovery, metadata probing, packet reading, audio/video decoding, first-frame conversion, and lightweight WAV/PPM frame writers.
-- Current Phase 7: `nexus_screen`: screen capture module boundary and unavailable-backend facade.
+- Current Phase 7: `nexus_screen`: screen capture facade plus Windows DXGI Desktop Duplication primary-display BGRA capture.

@@ -17,6 +17,12 @@ target_link_libraries(nexus_screen
         nexus::core
 )
 
+if(WIN32)
+    target_sources(nexus_screen PRIVATE screen_win_dxgi.cpp)
+    target_link_libraries(nexus_screen PRIVATE d3d11 dxgi)
+    target_compile_definitions(nexus_screen PRIVATE NEXUS_SCREEN_WITH_DXGI)
+endif()
+
 if(NEXUS_BUILD_SHARED)
     target_compile_definitions(nexus_screen
         PUBLIC NEXUS_SCREEN_SHARED

@@ -1,5 +1,7 @@
 #include <nexus/screen/screen.h>
 
+#include "screen_private.h"
+
 #include <memory>
 #include <utility>
 
@@ -15,27 +17,46 @@ Status unavailable_status() {
 
 namespace detail {
 
-class ScreenCapturerStorage {
+namespace {
+
+class UnavailableScreenCapturerStorage final : public ScreenCapturerStorage {
 public:
-    explicit ScreenCapturerStorage(ScreenCaptureOptions options)
+    explicit UnavailableScreenCapturerStorage(ScreenCaptureOptions options)
         : options_(options) {}
 
-    bool is_available() const {
+    bool is_available() const override {
         return false;
     }
 
-    void close() {}
+    Result<ScreenFrame> capture_primary() override {
+        return unavailable_status();
+    }
+
+    void close() override {}
 
 private:
     ScreenCaptureOptions options_;
 };
 
-} // namespace detail
+} // namespace
 
-ScreenBackendInfo screen_backend_info() {
+#if !defined(NEXUS_SCREEN_WITH_DXGI)
+std::unique_ptr<ScreenCapturerStorage> create_screen_capturer_storage(
+    const ScreenCaptureOptions& options) {
+    return std::make_unique<UnavailableScreenCapturerStorage>(options);
+}
+
+ScreenBackendInfo query_screen_backend_info() {
     ScreenBackendInfo info;
     info.description = "No screen capture backend is available in this build";
     return info;
+}
+#endif
+
+} // namespace detail
+
+ScreenBackendInfo screen_backend_info() {
+    return detail::query_screen_backend_info();
 }
 
 ScreenCapturer::ScreenCapturer() = default;
@@ -47,7 +68,7 @@ ScreenCapturer& ScreenCapturer::operator=(ScreenCapturer&& other) noexcept = def
 ScreenCapturer::~ScreenCapturer() = default;
 
 Result<ScreenCapturer> ScreenCapturer::create(const ScreenCaptureOptions& options) {
-    return ScreenCapturer(std::make_unique<detail::ScreenCapturerStorage>(options));
+    return ScreenCapturer(detail::create_screen_capturer_storage(options));
 }
 
 bool ScreenCapturer::is_available() const {
@@ -59,7 +80,7 @@ Result<ScreenFrame> ScreenCapturer::capture_primary() {
         return unavailable_status();
     }
 
-    return unavailable_status();
+    return storage_->capture_primary();
 }
 
 Status ScreenCapturer::close() {
