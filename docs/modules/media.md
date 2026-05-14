@@ -15,6 +15,8 @@
 - `nexus::media::MediaFrame`: decoded frame metadata and bytes, including audio sample format or video pixel format names when available.
 - `nexus::media::MediaDecodeOptions`: decoder open options. `stream_type` defaults to audio and can be set to video.
 - `nexus::media::MediaDecoder`: move-only RAII decoder that opens a media file and reads decoded audio or video frames.
+- `nexus::media::AudioConvertOptions` and `convert_audio_frame`: convert decoded audio frames to a target sample rate, channel count, and packed sample format.
+- `nexus::media::VideoConvertOptions` and `convert_video_frame`: convert decoded video frames to RGB24, RGBA, BGR24, or BGRA.
 
 ## Scope
 
@@ -22,7 +24,9 @@ The initial module does not encode, remux, resample, scale, convert pixel format
 
 Decoded audio frames include sample rate, channel count, FFmpeg sample format name, bytes per sample, and whether the decoded frame is planar. Packed audio is copied as a single interleaved byte buffer. Planar audio is copied channel-by-channel into one contiguous byte buffer.
 
-Decoded video frames include width, height, FFmpeg pixel format name, and backend-native frame bytes. NexusKit does not currently convert video frames to RGB/BGR or normalize line padding.
+Decoded video frames include width, height, FFmpeg pixel format name, and backend-native frame bytes. Use `convert_video_frame` when a normalized RGB-family pixel format is needed.
+
+Audio conversion currently supports packed `u8`, `s16`, `s32`, `flt`, and `dbl` output formats. Video conversion currently supports `rgb24`, `rgba`, `bgr24`, and `bgra` output formats. Conversion requires an FFmpeg build that provides `swresample` and `swscale`; otherwise conversion calls return `StatusCode::kFailedPrecondition` for valid frames.
 
 ## Backend
 

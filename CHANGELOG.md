@@ -7,3 +7,4 @@
 - Add `nexus_core` with status/result foundations.
 - Add initial tests, examples, and documentation.
 - Extend `nexus_media` decoding with explicit audio/video stream selection and decoded frame format metadata.
+- Add `nexus_media` audio resampling/sample-format conversion and video RGB-family pixel conversion helpers.

@@ -44,7 +44,7 @@ std::filesystem::path write_pcm_wav_fixture(const std::string& name) {
     constexpr std::uint16_t bits_per_sample = 16;
     constexpr std::uint16_t block_align = channels * bits_per_sample / 8;
     constexpr std::uint32_t byte_rate = sample_rate * block_align;
-    constexpr std::uint32_t sample_count = 16;
+    constexpr std::uint32_t sample_count = 1024;
     constexpr std::uint32_t data_size = sample_count * block_align;
 
     std::vector<std::uint8_t> data;
@@ -340,4 +340,60 @@ TEST_CASE("Media decoder reads video frames when FFmpeg backend is available") {
     CHECK(frame.value().height == 2);
     CHECK_FALSE(frame.value().format_name.empty());
     CHECK_FALSE(frame.value().data.empty());
+}
+
+TEST_CASE("Media audio converter resamples decoded audio frames when FFmpeg backend is available") {
+    const auto backend = nexus::media::ffmpeg_backend_info();
+    if (!backend.available) {
+        return;
+    }
+
+    const auto path = write_pcm_wav_fixture("convert-audio.wav");
+    auto decoder = nexus::media::MediaDecoder::open(path);
+    REQUIRE(decoder.ok());
+
+    const auto frame = decoder.value().read_frame();
+    REQUIRE(frame.ok());
+
+    nexus::media::AudioConvertOptions options;
+    options.sample_rate = 16000;
+    options.channels = 1;
+    options.sample_format = nexus::media::AudioSampleFormat::s16;
+
+    const auto converted = nexus::media::convert_audio_frame(frame.value(), options);
+    REQUIRE(converted.ok());
+    CHECK(converted.value().type == nexus::media::MediaStreamType::audio);
+    CHECK(converted.value().sample_rate == 16000);
+    CHECK(converted.value().channels == 1);
+    CHECK(converted.value().format_name == "s16");
+    CHECK(converted.value().bytes_per_sample == 2);
+    CHECK_FALSE(converted.value().planar);
+    CHECK_FALSE(converted.value().data.empty());
+}
+
+TEST_CASE("Media video converter converts decoded frames to RGBA when FFmpeg backend is available") {
+    const auto backend = nexus::media::ffmpeg_backend_info();
+    if (!backend.available) {
+        return;
+    }
+
+    const auto path = write_ppm_fixture("convert-video.ppm");
+    nexus::media::MediaDecodeOptions decode_options;
+    decode_options.stream_type = nexus::media::MediaStreamType::video;
+    auto decoder = nexus::media::MediaDecoder::open(path, decode_options);
+    REQUIRE(decoder.ok());
+
+    const auto frame = decoder.value().read_frame();
+    REQUIRE(frame.ok());
+
+    nexus::media::VideoConvertOptions options;
+    options.pixel_format = nexus::media::VideoPixelFormat::rgba;
+
+    const auto converted = nexus::media::convert_video_frame(frame.value(), options);
+    REQUIRE(converted.ok());
+    CHECK(converted.value().type == nexus::media::MediaStreamType::video);
+    CHECK(converted.value().width == 2);
+    CHECK(converted.value().height == 2);
+    CHECK(converted.value().format_name == "rgba");
+    CHECK(converted.value().data.size() == 2 * 2 * 4);
 }

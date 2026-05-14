@@ -19,13 +19,19 @@ target_link_libraries(nexus_media
         nexus::log
 )
 
-if(TARGET FFmpeg::avutil AND TARGET FFmpeg::avcodec AND TARGET FFmpeg::avformat)
+if(TARGET FFmpeg::avutil
+        AND TARGET FFmpeg::avcodec
+        AND TARGET FFmpeg::avformat
+        AND TARGET FFmpeg::swresample
+        AND TARGET FFmpeg::swscale)
     target_compile_definitions(nexus_media PRIVATE NEXUS_MEDIA_WITH_FFMPEG)
     target_link_libraries(nexus_media
         PRIVATE
             $<BUILD_INTERFACE:FFmpeg::avutil>
             $<BUILD_INTERFACE:FFmpeg::avcodec>
             $<BUILD_INTERFACE:FFmpeg::avformat>
+            $<BUILD_INTERFACE:FFmpeg::swresample>
+            $<BUILD_INTERFACE:FFmpeg::swscale>
     )
 endif()
 

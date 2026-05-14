@@ -16,6 +16,8 @@ extern "C" {
 #include <libavutil/imgutils.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/avutil.h>
+#include <libswresample/swresample.h>
+#include <libswscale/swscale.h>
 }
 #endif
 
@@ -57,6 +59,18 @@ struct CodecContextDeleter {
 struct FrameDeleter {
     void operator()(AVFrame* frame) const {
         av_frame_free(&frame);
+    }
+};
+
+struct SwrContextDeleter {
+    void operator()(SwrContext* context) const {
+        swr_free(&context);
+    }
+};
+
+struct SwsContextDeleter {
+    void operator()(SwsContext* context) const {
+        sws_freeContext(context);
     }
 };
 
@@ -110,6 +124,45 @@ AVMediaType to_av_media_type(MediaStreamType type) {
     case MediaStreamType::unknown:
     default:
         return AVMEDIA_TYPE_UNKNOWN;
+    }
+}
+
+AVSampleFormat to_av_sample_format(AudioSampleFormat format) {
+    switch (format) {
+    case AudioSampleFormat::u8:
+        return AV_SAMPLE_FMT_U8;
+    case AudioSampleFormat::s16:
+        return AV_SAMPLE_FMT_S16;
+    case AudioSampleFormat::s32:
+        return AV_SAMPLE_FMT_S32;
+    case AudioSampleFormat::flt:
+        return AV_SAMPLE_FMT_FLT;
+    case AudioSampleFormat::dbl:
+        return AV_SAMPLE_FMT_DBL;
+    case AudioSampleFormat::unknown:
+    default:
+        return AV_SAMPLE_FMT_NONE;
+    }
+}
+
+AVSampleFormat sample_format_from_name(const std::string& name) {
+    const auto format = av_get_sample_fmt(name.c_str());
+    return format == AV_SAMPLE_FMT_NONE ? AV_SAMPLE_FMT_NONE : format;
+}
+
+AVPixelFormat to_av_pixel_format(VideoPixelFormat format) {
+    switch (format) {
+    case VideoPixelFormat::rgb24:
+        return AV_PIX_FMT_RGB24;
+    case VideoPixelFormat::rgba:
+        return AV_PIX_FMT_RGBA;
+    case VideoPixelFormat::bgr24:
+        return AV_PIX_FMT_BGR24;
+    case VideoPixelFormat::bgra:
+        return AV_PIX_FMT_BGRA;
+    case VideoPixelFormat::unknown:
+    default:
+        return AV_PIX_FMT_NONE;
     }
 }
 
@@ -324,6 +377,244 @@ Result<MediaProbeInfo> probe_media(const std::filesystem::path& path) {
         "Media probe format=" + info.format_name +
             " streams=" + std::to_string(info.streams.size()));
     return info;
+#endif
+}
+
+Result<MediaFrame> convert_audio_frame(
+    const MediaFrame& frame,
+    const AudioConvertOptions& options) {
+    if (frame.type != MediaStreamType::audio) {
+        return Status::invalid_argument("media frame is not audio");
+    }
+    if (frame.data.empty()) {
+        return Status::invalid_argument("audio frame data cannot be empty");
+    }
+    if (frame.sample_rate <= 0 || frame.channels <= 0 || frame.bytes_per_sample <= 0) {
+        return Status::invalid_argument("audio frame metadata is incomplete");
+    }
+    if (options.sample_rate <= 0 || options.channels <= 0) {
+        return Status::invalid_argument("audio conversion options are invalid");
+    }
+
+#if !defined(NEXUS_MEDIA_WITH_FFMPEG)
+    static_cast<void>(options);
+    return backend_unavailable_status();
+#else
+    const auto input_format = sample_format_from_name(frame.format_name);
+    const auto output_format = to_av_sample_format(options.sample_format);
+    if (input_format == AV_SAMPLE_FMT_NONE || output_format == AV_SAMPLE_FMT_NONE) {
+        return Status::invalid_argument("audio sample format is not supported");
+    }
+
+    const auto input_samples = static_cast<int>(
+        frame.data.size() /
+        static_cast<std::size_t>(frame.channels * frame.bytes_per_sample));
+    if (input_samples <= 0) {
+        return Status::invalid_argument("audio frame sample count is invalid");
+    }
+
+    AVChannelLayout input_layout;
+    AVChannelLayout output_layout;
+    av_channel_layout_default(&input_layout, frame.channels);
+    av_channel_layout_default(&output_layout, options.channels);
+
+    SwrContext* raw_context = nullptr;
+    const auto alloc_result = swr_alloc_set_opts2(
+        &raw_context,
+        &output_layout,
+        output_format,
+        options.sample_rate,
+        &input_layout,
+        input_format,
+        frame.sample_rate,
+        0,
+        nullptr);
+    av_channel_layout_uninit(&input_layout);
+    av_channel_layout_uninit(&output_layout);
+    if (alloc_result < 0) {
+        return Status::invalid_argument("FFmpeg audio converter allocation failed: " + ffmpeg_error(alloc_result));
+    }
+
+    std::unique_ptr<SwrContext, SwrContextDeleter> context(raw_context);
+    const auto init_result = swr_init(context.get());
+    if (init_result < 0) {
+        return Status::invalid_argument("FFmpeg audio converter init failed: " + ffmpeg_error(init_result));
+    }
+
+    std::vector<const std::uint8_t*> input_planes;
+    if (frame.planar) {
+        const auto plane_size = static_cast<std::size_t>(input_samples * frame.bytes_per_sample);
+        input_planes.reserve(static_cast<std::size_t>(frame.channels));
+        for (int channel = 0; channel < frame.channels; ++channel) {
+            input_planes.push_back(frame.data.data() + plane_size * static_cast<std::size_t>(channel));
+        }
+    } else {
+        input_planes.push_back(frame.data.data());
+    }
+
+    const auto delayed_samples = swr_get_delay(context.get(), frame.sample_rate);
+    const auto output_samples = static_cast<int>(av_rescale_rnd(
+        delayed_samples + input_samples,
+        options.sample_rate,
+        frame.sample_rate,
+        AV_ROUND_UP));
+    if (output_samples <= 0) {
+        return Status::invalid_argument("FFmpeg audio converter output size is invalid");
+    }
+
+    const auto output_bytes_per_sample = av_get_bytes_per_sample(output_format);
+    const auto output_byte_count = output_samples * options.channels * output_bytes_per_sample;
+    std::vector<std::uint8_t> output(static_cast<std::size_t>(output_byte_count));
+    std::uint8_t* output_planes[] = {output.data()};
+
+    const auto converted_samples = swr_convert(
+        context.get(),
+        output_planes,
+        output_samples,
+        input_planes.data(),
+        input_samples);
+    if (converted_samples < 0) {
+        return Status::invalid_argument("FFmpeg audio converter failed: " + ffmpeg_error(converted_samples));
+    }
+
+    auto total_samples = converted_samples;
+    output.resize(static_cast<std::size_t>(
+        total_samples * options.channels * output_bytes_per_sample));
+
+    const auto flush_capacity = static_cast<int>(swr_get_delay(context.get(), options.sample_rate));
+    if (flush_capacity > 0) {
+        const auto old_size = output.size();
+        output.resize(old_size + static_cast<std::size_t>(
+            flush_capacity * options.channels * output_bytes_per_sample));
+        std::uint8_t* flush_planes[] = {output.data() + old_size};
+        const auto flushed_samples = swr_convert(
+            context.get(),
+            flush_planes,
+            flush_capacity,
+            nullptr,
+            0);
+        if (flushed_samples < 0) {
+            return Status::invalid_argument(
+                "FFmpeg audio converter flush failed: " + ffmpeg_error(flushed_samples));
+        }
+        total_samples += flushed_samples;
+        output.resize(static_cast<std::size_t>(
+            total_samples * options.channels * output_bytes_per_sample));
+    }
+
+    MediaFrame converted;
+    converted.stream_index = frame.stream_index;
+    converted.type = MediaStreamType::audio;
+    converted.pts = frame.pts;
+    converted.sample_rate = options.sample_rate;
+    converted.channels = options.channels;
+    const char* output_name = av_get_sample_fmt_name(output_format);
+    converted.format_name = output_name == nullptr ? "" : output_name;
+    converted.bytes_per_sample = output_bytes_per_sample;
+    converted.planar = false;
+    converted.data = std::move(output);
+    return converted;
+#endif
+}
+
+Result<MediaFrame> convert_video_frame(
+    const MediaFrame& frame,
+    const VideoConvertOptions& options) {
+    if (frame.type != MediaStreamType::video) {
+        return Status::invalid_argument("media frame is not video");
+    }
+    if (frame.data.empty()) {
+        return Status::invalid_argument("video frame data cannot be empty");
+    }
+    if (frame.width <= 0 || frame.height <= 0 || frame.format_name.empty()) {
+        return Status::invalid_argument("video frame metadata is incomplete");
+    }
+
+#if !defined(NEXUS_MEDIA_WITH_FFMPEG)
+    static_cast<void>(options);
+    return backend_unavailable_status();
+#else
+    const auto input_format = av_get_pix_fmt(frame.format_name.c_str());
+    const auto output_format = to_av_pixel_format(options.pixel_format);
+    if (input_format == AV_PIX_FMT_NONE || output_format == AV_PIX_FMT_NONE) {
+        return Status::invalid_argument("video pixel format is not supported");
+    }
+
+    std::uint8_t* input_data[4] = {};
+    int input_linesize[4] = {};
+    const auto input_fill_result = av_image_fill_arrays(
+        input_data,
+        input_linesize,
+        frame.data.data(),
+        input_format,
+        frame.width,
+        frame.height,
+        1);
+    if (input_fill_result < 0) {
+        return Status::invalid_argument(
+            "FFmpeg image input fill failed: " + ffmpeg_error(input_fill_result));
+    }
+
+    const auto output_buffer_size =
+        av_image_get_buffer_size(output_format, frame.width, frame.height, 1);
+    if (output_buffer_size < 0) {
+        return Status::invalid_argument(
+            "FFmpeg image output buffer size failed: " + ffmpeg_error(output_buffer_size));
+    }
+
+    std::vector<std::uint8_t> output(static_cast<std::size_t>(output_buffer_size));
+    std::uint8_t* output_data[4] = {};
+    int output_linesize[4] = {};
+    const auto output_fill_result = av_image_fill_arrays(
+        output_data,
+        output_linesize,
+        output.data(),
+        output_format,
+        frame.width,
+        frame.height,
+        1);
+    if (output_fill_result < 0) {
+        return Status::invalid_argument(
+            "FFmpeg image output fill failed: " + ffmpeg_error(output_fill_result));
+    }
+
+    std::unique_ptr<SwsContext, SwsContextDeleter> context(sws_getContext(
+        frame.width,
+        frame.height,
+        input_format,
+        frame.width,
+        frame.height,
+        output_format,
+        SWS_BILINEAR,
+        nullptr,
+        nullptr,
+        nullptr));
+    if (!context) {
+        return Status::internal("FFmpeg video converter allocation failed");
+    }
+
+    const auto scaled_height = sws_scale(
+        context.get(),
+        input_data,
+        input_linesize,
+        0,
+        frame.height,
+        output_data,
+        output_linesize);
+    if (scaled_height != frame.height) {
+        return Status::internal("FFmpeg video converter produced incomplete frame");
+    }
+
+    MediaFrame converted;
+    converted.stream_index = frame.stream_index;
+    converted.type = MediaStreamType::video;
+    converted.pts = frame.pts;
+    converted.width = frame.width;
+    converted.height = frame.height;
+    const char* output_name = av_get_pix_fmt_name(output_format);
+    converted.format_name = output_name == nullptr ? "" : output_name;
+    converted.data = std::move(output);
+    return converted;
 #endif
 }
 

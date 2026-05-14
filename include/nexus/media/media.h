@@ -77,8 +77,41 @@ struct MediaDecodeOptions {
     MediaStreamType stream_type = MediaStreamType::audio;
 };
 
+enum class AudioSampleFormat {
+    unknown,
+    u8,
+    s16,
+    s32,
+    flt,
+    dbl
+};
+
+struct AudioConvertOptions {
+    int sample_rate = 0;
+    int channels = 0;
+    AudioSampleFormat sample_format = AudioSampleFormat::s16;
+};
+
+enum class VideoPixelFormat {
+    unknown,
+    rgb24,
+    rgba,
+    bgr24,
+    bgra
+};
+
+struct VideoConvertOptions {
+    VideoPixelFormat pixel_format = VideoPixelFormat::rgb24;
+};
+
 NEXUS_MEDIA_API FfmpegBackendInfo ffmpeg_backend_info();
 NEXUS_MEDIA_API Result<MediaProbeInfo> probe_media(const std::filesystem::path& path);
+NEXUS_MEDIA_API Result<MediaFrame> convert_audio_frame(
+    const MediaFrame& frame,
+    const AudioConvertOptions& options);
+NEXUS_MEDIA_API Result<MediaFrame> convert_video_frame(
+    const MediaFrame& frame,
+    const VideoConvertOptions& options);
 
 class NEXUS_MEDIA_API MediaReader {
 public:
