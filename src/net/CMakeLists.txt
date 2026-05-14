@@ -4,6 +4,7 @@ include(Asio)
 add_library(nexus_net ${NEXUS_LIBRARY_TYPE}
     http.cpp
     tcp.cpp
+    udp.cpp
 )
 
 add_library(nexus::net ALIAS nexus_net)

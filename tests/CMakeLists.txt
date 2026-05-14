@@ -50,6 +50,7 @@ if(TARGET nexus::net)
     add_executable(nexus_net_tests
         net/http_tests.cpp
         net/tcp_tests.cpp
+        net/udp_tests.cpp
     )
 
     target_link_libraries(nexus_net_tests
