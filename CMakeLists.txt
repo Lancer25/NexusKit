@@ -44,6 +44,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+if(MSVC)
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/EHsc>)
+endif()
+
 if(NEXUS_BUILD_SHARED)
     set(NEXUS_LIBRARY_TYPE SHARED)
 else()
@@ -121,3 +125,11 @@ install(
         "${CMAKE_CURRENT_BINARY_DIR}/NexusKitConfigVersion.cmake"
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/NexusKit"
 )
+
+install(CODE "
+    file(GLOB _nexus_private_hidapi_pkgconfig
+        \"\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/pkgconfig/hidapi*.pc\")
+    if(_nexus_private_hidapi_pkgconfig)
+        file(REMOVE \${_nexus_private_hidapi_pkgconfig})
+    endif()
+")
