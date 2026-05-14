@@ -162,3 +162,59 @@ TEST_CASE("Media probe reads WAV metadata when FFmpeg backend is available") {
     CHECK(probe.value().streams[0].sample_rate == 8000);
     CHECK(probe.value().streams[0].channels == 1);
 }
+
+TEST_CASE("Media reader rejects empty paths") {
+    const auto reader = nexus::media::MediaReader::open({});
+
+    REQUIRE_FALSE(reader.ok());
+    CHECK(reader.status().code() == nexus::StatusCode::kInvalidArgument);
+}
+
+TEST_CASE("Media reader reports missing files") {
+    const auto path = test_media_path("missing-reader.media");
+
+    const auto reader = nexus::media::MediaReader::open(path);
+
+    REQUIRE_FALSE(reader.ok());
+    CHECK(reader.status().code() == nexus::StatusCode::kNotFound);
+}
+
+TEST_CASE("Media reader reports unavailable backend before opening") {
+    const auto path = test_media_path("reader-placeholder.media");
+    {
+        std::ofstream file(path, std::ios::binary);
+        file << "not a real media file";
+    }
+
+    const auto backend = nexus::media::ffmpeg_backend_info();
+    const auto reader = nexus::media::MediaReader::open(path);
+
+    if (backend.available) {
+        REQUIRE_FALSE(reader.ok());
+        CHECK(reader.status().code() == nexus::StatusCode::kInvalidArgument);
+    } else {
+        REQUIRE_FALSE(reader.ok());
+        CHECK(reader.status().code() == nexus::StatusCode::kFailedPrecondition);
+    }
+}
+
+TEST_CASE("Media reader reads packets when FFmpeg backend is available") {
+    const auto backend = nexus::media::ffmpeg_backend_info();
+    if (!backend.available) {
+        return;
+    }
+
+    const auto path = write_pcm_wav_fixture("reader-tone.wav");
+
+    auto reader = nexus::media::MediaReader::open(path);
+    REQUIRE(reader.ok());
+    CHECK(reader.value().is_open());
+
+    const auto packet = reader.value().read_packet();
+    REQUIRE(packet.ok());
+    CHECK(packet.value().stream_index == 0);
+    CHECK_FALSE(packet.value().data.empty());
+
+    CHECK(reader.value().close().ok());
+    CHECK_FALSE(reader.value().is_open());
+}

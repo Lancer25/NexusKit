@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -10,6 +11,10 @@
 #include <nexus/media/export.h>
 
 namespace nexus::media {
+
+namespace detail {
+class MediaReaderStorage;
+}
 
 struct FfmpegBackendInfo {
     std::string name = "ffmpeg";
@@ -44,7 +49,37 @@ struct MediaProbeInfo {
     std::vector<MediaStreamInfo> streams;
 };
 
+struct MediaPacket {
+    int stream_index = -1;
+    std::int64_t pts = 0;
+    std::int64_t dts = 0;
+    std::int64_t duration = 0;
+    bool key_frame = false;
+    std::vector<std::uint8_t> data;
+};
+
 NEXUS_MEDIA_API FfmpegBackendInfo ffmpeg_backend_info();
 NEXUS_MEDIA_API Result<MediaProbeInfo> probe_media(const std::filesystem::path& path);
+
+class NEXUS_MEDIA_API MediaReader {
+public:
+    MediaReader();
+    MediaReader(const MediaReader&) = delete;
+    MediaReader& operator=(const MediaReader&) = delete;
+    MediaReader(MediaReader&& other) noexcept;
+    MediaReader& operator=(MediaReader&& other) noexcept;
+    ~MediaReader();
+
+    static Result<MediaReader> open(const std::filesystem::path& path);
+
+    bool is_open() const;
+    Result<MediaPacket> read_packet();
+    Status close();
+
+private:
+    explicit MediaReader(std::unique_ptr<detail::MediaReaderStorage> storage);
+
+    std::unique_ptr<detail::MediaReaderStorage> storage_;
+};
 
 } // namespace nexus::media
