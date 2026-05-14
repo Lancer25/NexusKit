@@ -112,6 +112,10 @@ if(NEXUS_ENABLE_MEDIA)
     add_subdirectory(src/media)
 endif()
 
+if(NEXUS_ENABLE_SCREEN)
+    add_subdirectory(src/screen)
+endif()
+
 if(NEXUS_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)

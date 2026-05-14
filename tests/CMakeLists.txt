@@ -121,3 +121,17 @@ if(TARGET nexus::media)
 
     catch_discover_tests(nexus_media_tests)
 endif()
+
+if(TARGET nexus::screen)
+    add_executable(nexus_screen_tests
+        screen/screen_tests.cpp
+    )
+
+    target_link_libraries(nexus_screen_tests
+        PRIVATE
+            nexus::screen
+            Catch2::Catch2WithMain
+    )
+
+    catch_discover_tests(nexus_screen_tests)
+endif()

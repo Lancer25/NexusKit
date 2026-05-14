@@ -40,4 +40,4 @@ cmake --preset windows-msvc-debug
 - Current Phase 5: `nexus_usb`: USB device discovery and HID-backed report I/O facade.
 - Current Phase 5: `nexus_hid`: HID device enumeration with a private hidapi backend.
 - Current Phase 6: `nexus_media`: media backend discovery, metadata probing, packet reading, audio/video decoding, first-frame conversion, and lightweight WAV/PPM frame writers.
-- Planned: `nexus_screen`: desktop and window capture.
+- Current Phase 7: `nexus_screen`: screen capture module boundary and unavailable-backend facade.

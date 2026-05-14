@@ -17,7 +17,7 @@ Recipes are intentionally opt-in. The top-level build only activates heavyweight
 - Current Phase 5: `nexus_usb` provides USB device discovery and HID-backed report I/O facade APIs and will expand toward UVC and hotplug support.
 - Current Phase 5: `nexus_hid` provides HID device enumeration through a private hidapi backend.
 - Current Phase 6: `nexus_media` provides media backend discovery and will expand into FFmpeg-based media processing.
-- Planned: `nexus_screen` will provide desktop and window capture.
+- Current Phase 7: `nexus_screen` provides the screen capture module boundary and will expand into desktop and window capture.
 
 ## Rules
 

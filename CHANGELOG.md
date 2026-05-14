@@ -9,3 +9,4 @@
 - Extend `nexus_media` decoding with explicit audio/video stream selection and decoded frame format metadata.
 - Add `nexus_media` audio resampling/sample-format conversion and video RGB-family pixel conversion helpers.
 - Add lightweight `nexus_media` WAV and PPM frame writer helpers.
+- Add initial `nexus_screen` module skeleton with public capture facade and tests.
