@@ -45,14 +45,17 @@ endif()
 
 if(TARGET nexus::net)
     include(CppHttplib)
+    include(Asio)
 
     add_executable(nexus_net_tests
         net/http_tests.cpp
+        net/tcp_tests.cpp
     )
 
     target_link_libraries(nexus_net_tests
         PRIVATE
             nexus::net
+            asio::asio
             httplib::httplib
             Catch2::Catch2WithMain
     )

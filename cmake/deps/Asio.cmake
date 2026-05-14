@@ -14,6 +14,22 @@ if(NEXUS_BUILD_DEPS)
     )
 
     FetchContent_MakeAvailable(asio)
+
+    if(NOT TARGET asio)
+        add_library(asio INTERFACE)
+        add_library(asio::asio ALIAS asio)
+
+        target_include_directories(asio
+            INTERFACE
+                "${asio_SOURCE_DIR}/asio/include"
+        )
+
+        target_compile_definitions(asio
+            INTERFACE
+                ASIO_STANDALONE
+                $<$<PLATFORM_ID:Windows>:_WIN32_WINNT=0x0601>
+        )
+    endif()
 else()
     nexus_print_dependency_mode(asio "find_package")
     find_package(asio REQUIRED CONFIG)

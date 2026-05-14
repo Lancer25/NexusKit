@@ -1,7 +1,9 @@
 include(CppHttplib)
+include(Asio)
 
 add_library(nexus_net ${NEXUS_LIBRARY_TYPE}
     http.cpp
+    tcp.cpp
 )
 
 add_library(nexus::net ALIAS nexus_net)
@@ -18,6 +20,7 @@ target_link_libraries(nexus_net
     PUBLIC
         nexus::core
     PRIVATE
+        $<BUILD_INTERFACE:asio::asio>
         $<BUILD_INTERFACE:httplib::httplib>
 )
 
