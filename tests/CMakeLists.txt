@@ -108,5 +108,16 @@ if(TARGET nexus::media)
             Catch2::Catch2WithMain
     )
 
+    if(WIN32 AND NEXUS_FFMPEG_RUNTIME_FILES)
+        add_custom_command(
+            TARGET nexus_media_tests
+            POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+                ${NEXUS_FFMPEG_RUNTIME_FILES}
+                "$<TARGET_FILE_DIR:nexus_media_tests>"
+            COMMAND_EXPAND_LISTS
+        )
+    endif()
+
     catch_discover_tests(nexus_media_tests)
 endif()

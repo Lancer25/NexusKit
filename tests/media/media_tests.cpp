@@ -1,8 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 #include <nexus/log/logger.h>
 #include <nexus/media/media.h>
@@ -20,6 +22,49 @@ std::filesystem::path test_media_path(const std::string& name) {
     auto path = std::filesystem::temp_directory_path() / "nexus_media_tests" / name;
     std::filesystem::create_directories(path.parent_path());
     std::filesystem::remove(path);
+    return path;
+}
+
+void append_u16_le(std::vector<std::uint8_t>& data, std::uint16_t value) {
+    data.push_back(static_cast<std::uint8_t>(value & 0xff));
+    data.push_back(static_cast<std::uint8_t>((value >> 8) & 0xff));
+}
+
+void append_u32_le(std::vector<std::uint8_t>& data, std::uint32_t value) {
+    data.push_back(static_cast<std::uint8_t>(value & 0xff));
+    data.push_back(static_cast<std::uint8_t>((value >> 8) & 0xff));
+    data.push_back(static_cast<std::uint8_t>((value >> 16) & 0xff));
+    data.push_back(static_cast<std::uint8_t>((value >> 24) & 0xff));
+}
+
+std::filesystem::path write_pcm_wav_fixture(const std::string& name) {
+    const auto path = test_media_path(name);
+    constexpr std::uint16_t channels = 1;
+    constexpr std::uint32_t sample_rate = 8000;
+    constexpr std::uint16_t bits_per_sample = 16;
+    constexpr std::uint16_t block_align = channels * bits_per_sample / 8;
+    constexpr std::uint32_t byte_rate = sample_rate * block_align;
+    constexpr std::uint32_t sample_count = 16;
+    constexpr std::uint32_t data_size = sample_count * block_align;
+
+    std::vector<std::uint8_t> data;
+    data.insert(data.end(), {'R', 'I', 'F', 'F'});
+    append_u32_le(data, 36 + data_size);
+    data.insert(data.end(), {'W', 'A', 'V', 'E'});
+    data.insert(data.end(), {'f', 'm', 't', ' '});
+    append_u32_le(data, 16);
+    append_u16_le(data, 1);
+    append_u16_le(data, channels);
+    append_u32_le(data, sample_rate);
+    append_u32_le(data, byte_rate);
+    append_u16_le(data, block_align);
+    append_u16_le(data, bits_per_sample);
+    data.insert(data.end(), {'d', 'a', 't', 'a'});
+    append_u32_le(data, data_size);
+    data.resize(data.size() + data_size, 0);
+
+    std::ofstream file(path, std::ios::binary);
+    file.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(data.size()));
     return path;
 }
 
@@ -98,4 +143,22 @@ TEST_CASE("Media probe reports unavailable backend before parsing") {
         REQUIRE_FALSE(probe.ok());
         CHECK(probe.status().code() == nexus::StatusCode::kFailedPrecondition);
     }
+}
+
+TEST_CASE("Media probe reads WAV metadata when FFmpeg backend is available") {
+    const auto backend = nexus::media::ffmpeg_backend_info();
+    if (!backend.available) {
+        return;
+    }
+
+    const auto path = write_pcm_wav_fixture("tone.wav");
+
+    const auto probe = nexus::media::probe_media(path);
+
+    REQUIRE(probe.ok());
+    CHECK_FALSE(probe.value().format_name.empty());
+    REQUIRE(probe.value().streams.size() == 1);
+    CHECK(probe.value().streams[0].type == nexus::media::MediaStreamType::audio);
+    CHECK(probe.value().streams[0].sample_rate == 8000);
+    CHECK(probe.value().streams[0].channels == 1);
 }

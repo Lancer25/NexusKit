@@ -82,7 +82,7 @@ if(NEXUS_BUILD_PORTAUDIO)
     include(PortAudio)
 endif()
 
-if(NEXUS_BUILD_FFMPEG)
+if(NEXUS_BUILD_FFMPEG OR NEXUS_ENABLE_MEDIA)
     include(FFmpeg)
 endif()
 

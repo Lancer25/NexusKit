@@ -23,9 +23,9 @@ if(TARGET FFmpeg::avutil AND TARGET FFmpeg::avcodec AND TARGET FFmpeg::avformat)
     target_compile_definitions(nexus_media PRIVATE NEXUS_MEDIA_WITH_FFMPEG)
     target_link_libraries(nexus_media
         PRIVATE
-            FFmpeg::avutil
-            FFmpeg::avcodec
-            FFmpeg::avformat
+            $<BUILD_INTERFACE:FFmpeg::avutil>
+            $<BUILD_INTERFACE:FFmpeg::avcodec>
+            $<BUILD_INTERFACE:FFmpeg::avformat>
     )
 endif()
 

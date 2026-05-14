@@ -1,17 +1,129 @@
 include_guard(GLOBAL)
 
+include(CMakeParseArguments)
 include(ExternalProject)
 
+set(NEXUS_FFMPEG_INSTALL_DIR "${CMAKE_BINARY_DIR}/deps/ffmpeg" CACHE PATH "FFmpeg install prefix")
+set(NEXUS_FFMPEG_ENABLE_GPL OFF CACHE BOOL "Enable GPL components in the FFmpeg source build")
+set(NEXUS_FFMPEG_EXTRA_CONFIGURE_OPTIONS "" CACHE STRING "Extra options passed to FFmpeg configure")
+
+set(NEXUS_FFMPEG_COMPONENTS
+    avutil
+    swresample
+    swscale
+    avcodec
+    avformat
+    avfilter
+    avdevice
+)
+
+function(nexus_define_ffmpeg_targets)
+    set(options)
+    set(oneValueArgs SOURCE_TARGET)
+    set(multiValueArgs)
+    cmake_parse_arguments(NEXUS_DEFINE_FFMPEG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    set(NEXUS_FFMPEG_INCLUDE_DIR "${NEXUS_FFMPEG_INSTALL_DIR}/include")
+    file(MAKE_DIRECTORY "${NEXUS_FFMPEG_INCLUDE_DIR}")
+
+    if(WIN32)
+        set(_NEXUS_FFMPEG_RUNTIME_DIR "${NEXUS_FFMPEG_INSTALL_DIR}/bin")
+        set(_NEXUS_FFMPEG_IMPLIB_DIR "${NEXUS_FFMPEG_INSTALL_DIR}/bin")
+        set(_NEXUS_FFMPEG_DLL_SUFFIXES
+            avutil-59
+            swresample-5
+            swscale-8
+            avcodec-61
+            avformat-61
+            avfilter-10
+            avdevice-61
+        )
+
+        set(_NEXUS_FFMPEG_RUNTIME_FILES)
+        foreach(_NEXUS_FFMPEG_DLL_NAME IN LISTS _NEXUS_FFMPEG_DLL_SUFFIXES)
+            list(APPEND _NEXUS_FFMPEG_RUNTIME_FILES "${_NEXUS_FFMPEG_RUNTIME_DIR}/${_NEXUS_FFMPEG_DLL_NAME}.dll")
+        endforeach()
+
+        set(_NEXUS_MSYS2_UCRT_RUNTIME_DIR "C:/msys64/ucrt64/bin" CACHE PATH "MSYS2 UCRT64 runtime directory used by FFmpeg")
+        foreach(_NEXUS_FFMPEG_RUNTIME_DEP libiconv-2.dll libwinpthread-1.dll zlib1.dll)
+            if(EXISTS "${_NEXUS_MSYS2_UCRT_RUNTIME_DIR}/${_NEXUS_FFMPEG_RUNTIME_DEP}")
+                list(APPEND _NEXUS_FFMPEG_RUNTIME_FILES "${_NEXUS_MSYS2_UCRT_RUNTIME_DIR}/${_NEXUS_FFMPEG_RUNTIME_DEP}")
+            endif()
+        endforeach()
+    else()
+        set(_NEXUS_FFMPEG_RUNTIME_DIR "${NEXUS_FFMPEG_INSTALL_DIR}/lib")
+        set(_NEXUS_FFMPEG_RUNTIME_FILES)
+    endif()
+
+    set(NEXUS_FFMPEG_RUNTIME_FILES ${_NEXUS_FFMPEG_RUNTIME_FILES} PARENT_SCOPE)
+
+    list(LENGTH NEXUS_FFMPEG_COMPONENTS _NEXUS_FFMPEG_COMPONENT_COUNT)
+    math(EXPR _NEXUS_FFMPEG_LAST_INDEX "${_NEXUS_FFMPEG_COMPONENT_COUNT} - 1")
+
+    foreach(_NEXUS_FFMPEG_INDEX RANGE 0 ${_NEXUS_FFMPEG_LAST_INDEX})
+        list(GET NEXUS_FFMPEG_COMPONENTS ${_NEXUS_FFMPEG_INDEX} _NEXUS_FFMPEG_COMPONENT)
+
+        if(TARGET FFmpeg::${_NEXUS_FFMPEG_COMPONENT})
+            continue()
+        endif()
+
+        if(WIN32)
+            add_library(FFmpeg::${_NEXUS_FFMPEG_COMPONENT} SHARED IMPORTED GLOBAL)
+        else()
+            add_library(FFmpeg::${_NEXUS_FFMPEG_COMPONENT} UNKNOWN IMPORTED GLOBAL)
+        endif()
+
+        if(NEXUS_DEFINE_FFMPEG_SOURCE_TARGET)
+            add_dependencies(FFmpeg::${_NEXUS_FFMPEG_COMPONENT} ${NEXUS_DEFINE_FFMPEG_SOURCE_TARGET})
+        endif()
+
+        set_target_properties(FFmpeg::${_NEXUS_FFMPEG_COMPONENT}
+            PROPERTIES
+                INTERFACE_INCLUDE_DIRECTORIES "${NEXUS_FFMPEG_INCLUDE_DIR}"
+        )
+
+        if(WIN32)
+            list(GET _NEXUS_FFMPEG_DLL_SUFFIXES ${_NEXUS_FFMPEG_INDEX} _NEXUS_FFMPEG_DLL_NAME)
+            set_target_properties(FFmpeg::${_NEXUS_FFMPEG_COMPONENT}
+                PROPERTIES
+                    IMPORTED_IMPLIB "${_NEXUS_FFMPEG_IMPLIB_DIR}/${_NEXUS_FFMPEG_COMPONENT}.lib"
+                    IMPORTED_LOCATION "${_NEXUS_FFMPEG_RUNTIME_DIR}/${_NEXUS_FFMPEG_DLL_NAME}.dll"
+            )
+        else()
+            set_target_properties(FFmpeg::${_NEXUS_FFMPEG_COMPONENT}
+                PROPERTIES
+                    IMPORTED_LOCATION "${NEXUS_FFMPEG_INSTALL_DIR}/lib/lib${_NEXUS_FFMPEG_COMPONENT}.so"
+            )
+        endif()
+    endforeach()
+
+    if(NOT TARGET FFmpeg::FFmpeg)
+        add_library(FFmpeg::FFmpeg INTERFACE IMPORTED GLOBAL)
+        target_link_libraries(FFmpeg::FFmpeg
+            INTERFACE
+                FFmpeg::avutil
+                FFmpeg::swresample
+                FFmpeg::swscale
+                FFmpeg::avcodec
+                FFmpeg::avformat
+                FFmpeg::avfilter
+                FFmpeg::avdevice
+        )
+    endif()
+endfunction()
+
 if(NOT NEXUS_BUILD_DEPS OR NOT NEXUS_BUILD_FFMPEG)
-    nexus_print_dependency_mode(FFmpeg "user-provided")
+    if(EXISTS "${NEXUS_FFMPEG_INSTALL_DIR}/include/libavutil/avutil.h")
+        nexus_print_dependency_mode(FFmpeg "user-provided ${NEXUS_FFMPEG_INSTALL_DIR}")
+        nexus_define_ffmpeg_targets()
+    else()
+        nexus_print_dependency_mode(FFmpeg "user-provided")
+    endif()
     return()
 endif()
 
 nexus_print_dependency_mode(FFmpeg "ExternalProject n7.0.1")
 
-set(NEXUS_FFMPEG_INSTALL_DIR "${CMAKE_BINARY_DIR}/deps/ffmpeg" CACHE PATH "FFmpeg source build install prefix")
-set(NEXUS_FFMPEG_ENABLE_GPL OFF CACHE BOOL "Enable GPL components in the FFmpeg source build")
-set(NEXUS_FFMPEG_EXTRA_CONFIGURE_OPTIONS "" CACHE STRING "Extra options passed to FFmpeg configure")
 set(NEXUS_FFMPEG_SOURCE_DIR "${CMAKE_BINARY_DIR}/_deps/ffmpeg/src/nexus_ffmpeg_source")
 file(TO_CMAKE_PATH "${NEXUS_FFMPEG_INSTALL_DIR}" NEXUS_FFMPEG_INSTALL_DIR_CMAKE)
 file(TO_CMAKE_PATH "${NEXUS_FFMPEG_SOURCE_DIR}" NEXUS_FFMPEG_SOURCE_DIR_CMAKE)
@@ -92,88 +204,4 @@ ExternalProject_Add(
     INSTALL_COMMAND ${NEXUS_FFMPEG_INSTALL_COMMAND}
 )
 
-set(NEXUS_FFMPEG_COMPONENTS
-    avutil
-    swresample
-    swscale
-    avcodec
-    avformat
-    avfilter
-    avdevice
-)
-
-set(NEXUS_FFMPEG_INCLUDE_DIR "${NEXUS_FFMPEG_INSTALL_DIR}/include")
-file(MAKE_DIRECTORY "${NEXUS_FFMPEG_INCLUDE_DIR}")
-
-if(WIN32)
-    set(_NEXUS_FFMPEG_RUNTIME_DIR "${NEXUS_FFMPEG_INSTALL_DIR}/bin")
-    set(_NEXUS_FFMPEG_IMPLIB_DIR "${NEXUS_FFMPEG_INSTALL_DIR}/bin")
-    set(_NEXUS_FFMPEG_DLL_SUFFIXES
-        avutil-59
-        swresample-5
-        swscale-8
-        avcodec-61
-        avformat-61
-        avfilter-10
-        avdevice-61
-    )
-    set(NEXUS_FFMPEG_RUNTIME_FILES)
-    foreach(_NEXUS_FFMPEG_DLL_NAME IN LISTS _NEXUS_FFMPEG_DLL_SUFFIXES)
-        list(APPEND NEXUS_FFMPEG_RUNTIME_FILES "${_NEXUS_FFMPEG_RUNTIME_DIR}/${_NEXUS_FFMPEG_DLL_NAME}.dll")
-    endforeach()
-
-    set(_NEXUS_MSYS2_UCRT_RUNTIME_DIR "C:/msys64/ucrt64/bin" CACHE PATH "MSYS2 UCRT64 runtime directory used by FFmpeg")
-    foreach(_NEXUS_FFMPEG_RUNTIME_DEP libiconv-2.dll libwinpthread-1.dll zlib1.dll)
-        if(EXISTS "${_NEXUS_MSYS2_UCRT_RUNTIME_DIR}/${_NEXUS_FFMPEG_RUNTIME_DEP}")
-            list(APPEND NEXUS_FFMPEG_RUNTIME_FILES "${_NEXUS_MSYS2_UCRT_RUNTIME_DIR}/${_NEXUS_FFMPEG_RUNTIME_DEP}")
-        endif()
-    endforeach()
-else()
-    set(_NEXUS_FFMPEG_RUNTIME_DIR "${NEXUS_FFMPEG_INSTALL_DIR}/lib")
-    set(NEXUS_FFMPEG_RUNTIME_FILES)
-endif()
-
-list(LENGTH NEXUS_FFMPEG_COMPONENTS _NEXUS_FFMPEG_COMPONENT_COUNT)
-math(EXPR _NEXUS_FFMPEG_LAST_INDEX "${_NEXUS_FFMPEG_COMPONENT_COUNT} - 1")
-
-foreach(_NEXUS_FFMPEG_INDEX RANGE 0 ${_NEXUS_FFMPEG_LAST_INDEX})
-    list(GET NEXUS_FFMPEG_COMPONENTS ${_NEXUS_FFMPEG_INDEX} _NEXUS_FFMPEG_COMPONENT)
-
-    if(WIN32)
-        add_library(FFmpeg::${_NEXUS_FFMPEG_COMPONENT} SHARED IMPORTED GLOBAL)
-    else()
-        add_library(FFmpeg::${_NEXUS_FFMPEG_COMPONENT} UNKNOWN IMPORTED GLOBAL)
-    endif()
-    add_dependencies(FFmpeg::${_NEXUS_FFMPEG_COMPONENT} nexus_ffmpeg_source)
-
-    set_target_properties(FFmpeg::${_NEXUS_FFMPEG_COMPONENT}
-        PROPERTIES
-            INTERFACE_INCLUDE_DIRECTORIES "${NEXUS_FFMPEG_INCLUDE_DIR}"
-    )
-
-    if(WIN32)
-        list(GET _NEXUS_FFMPEG_DLL_SUFFIXES ${_NEXUS_FFMPEG_INDEX} _NEXUS_FFMPEG_DLL_NAME)
-        set_target_properties(FFmpeg::${_NEXUS_FFMPEG_COMPONENT}
-            PROPERTIES
-                IMPORTED_IMPLIB "${_NEXUS_FFMPEG_IMPLIB_DIR}/${_NEXUS_FFMPEG_COMPONENT}.lib"
-                IMPORTED_LOCATION "${_NEXUS_FFMPEG_RUNTIME_DIR}/${_NEXUS_FFMPEG_DLL_NAME}.dll"
-        )
-    else()
-        set_target_properties(FFmpeg::${_NEXUS_FFMPEG_COMPONENT}
-            PROPERTIES
-                IMPORTED_LOCATION "${_NEXUS_FFMPEG_INSTALL_DIR}/lib/lib${_NEXUS_FFMPEG_COMPONENT}.so"
-        )
-    endif()
-endforeach()
-
-add_library(FFmpeg::FFmpeg INTERFACE IMPORTED GLOBAL)
-target_link_libraries(FFmpeg::FFmpeg
-    INTERFACE
-        FFmpeg::avutil
-        FFmpeg::swresample
-        FFmpeg::swscale
-        FFmpeg::avcodec
-        FFmpeg::avformat
-        FFmpeg::avfilter
-        FFmpeg::avdevice
-)
+nexus_define_ffmpeg_targets(SOURCE_TARGET nexus_ffmpeg_source)
