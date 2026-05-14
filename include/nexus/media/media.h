@@ -112,6 +112,12 @@ NEXUS_MEDIA_API Result<MediaFrame> convert_audio_frame(
 NEXUS_MEDIA_API Result<MediaFrame> convert_video_frame(
     const MediaFrame& frame,
     const VideoConvertOptions& options);
+NEXUS_MEDIA_API Status write_wav_file(
+    const std::filesystem::path& path,
+    const std::vector<MediaFrame>& frames);
+NEXUS_MEDIA_API Status write_ppm_file(
+    const std::filesystem::path& path,
+    const MediaFrame& frame);
 
 class NEXUS_MEDIA_API MediaReader {
 public:

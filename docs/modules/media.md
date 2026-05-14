@@ -17,6 +17,8 @@
 - `nexus::media::MediaDecoder`: move-only RAII decoder that opens a media file and reads decoded audio or video frames.
 - `nexus::media::AudioConvertOptions` and `convert_audio_frame`: convert decoded audio frames to a target sample rate, channel count, and packed sample format.
 - `nexus::media::VideoConvertOptions` and `convert_video_frame`: convert decoded video frames to RGB24, RGBA, BGR24, or BGRA.
+- `nexus::media::write_wav_file`: write packed `s16` audio frames to a PCM WAV file.
+- `nexus::media::write_ppm_file`: write `rgb24` or `rgba` video frames to a binary PPM image.
 
 ## Scope
 
@@ -27,6 +29,8 @@ Decoded audio frames include sample rate, channel count, FFmpeg sample format na
 Decoded video frames include width, height, FFmpeg pixel format name, and backend-native frame bytes. Use `convert_video_frame` when a normalized RGB-family pixel format is needed.
 
 Audio conversion currently supports packed `u8`, `s16`, `s32`, `flt`, and `dbl` output formats. Video conversion currently supports `rgb24`, `rgba`, `bgr24`, and `bgra` output formats. Conversion requires an FFmpeg build that provides `swresample` and `swscale`; otherwise conversion calls return `StatusCode::kFailedPrecondition` for valid frames.
+
+The lightweight writers are intentionally simple inspection and test utilities. They do not encode compressed media or mux general-purpose containers. Use `write_wav_file` for packed PCM `s16` audio frames with matching sample metadata, and `write_ppm_file` for `rgb24`/`rgba` video frames when a portable image artifact is useful.
 
 ## Backend
 

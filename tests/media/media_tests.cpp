@@ -397,3 +397,59 @@ TEST_CASE("Media video converter converts decoded frames to RGBA when FFmpeg bac
     CHECK(converted.value().format_name == "rgba");
     CHECK(converted.value().data.size() == 2 * 2 * 4);
 }
+
+TEST_CASE("Media WAV writer writes decoded PCM audio frames") {
+    const auto backend = nexus::media::ffmpeg_backend_info();
+    if (!backend.available) {
+        return;
+    }
+
+    const auto input_path = write_pcm_wav_fixture("writer-input.wav");
+    auto decoder = nexus::media::MediaDecoder::open(input_path);
+    REQUIRE(decoder.ok());
+    const auto frame = decoder.value().read_frame();
+    REQUIRE(frame.ok());
+
+    const auto output_path = test_media_path("writer-output.wav");
+    const auto status = nexus::media::write_wav_file(output_path, {frame.value()});
+    REQUIRE(status.ok());
+
+    const auto probe = nexus::media::probe_media(output_path);
+    REQUIRE(probe.ok());
+    REQUIRE(probe.value().streams.size() == 1);
+    CHECK(probe.value().streams[0].type == nexus::media::MediaStreamType::audio);
+    CHECK(probe.value().streams[0].sample_rate == frame.value().sample_rate);
+    CHECK(probe.value().streams[0].channels == frame.value().channels);
+}
+
+TEST_CASE("Media PPM writer writes RGB video frames") {
+    const auto backend = nexus::media::ffmpeg_backend_info();
+    if (!backend.available) {
+        return;
+    }
+
+    const auto input_path = write_ppm_fixture("writer-input.ppm");
+    nexus::media::MediaDecodeOptions decode_options;
+    decode_options.stream_type = nexus::media::MediaStreamType::video;
+    auto decoder = nexus::media::MediaDecoder::open(input_path, decode_options);
+    REQUIRE(decoder.ok());
+
+    const auto frame = decoder.value().read_frame();
+    REQUIRE(frame.ok());
+
+    nexus::media::VideoConvertOptions convert_options;
+    convert_options.pixel_format = nexus::media::VideoPixelFormat::rgb24;
+    const auto rgb = nexus::media::convert_video_frame(frame.value(), convert_options);
+    REQUIRE(rgb.ok());
+
+    const auto output_path = test_media_path("writer-output.ppm");
+    const auto status = nexus::media::write_ppm_file(output_path, rgb.value());
+    REQUIRE(status.ok());
+
+    const auto probe = nexus::media::probe_media(output_path);
+    REQUIRE(probe.ok());
+    REQUIRE(probe.value().streams.size() == 1);
+    CHECK(probe.value().streams[0].type == nexus::media::MediaStreamType::video);
+    CHECK(probe.value().streams[0].width == 2);
+    CHECK(probe.value().streams[0].height == 2);
+}

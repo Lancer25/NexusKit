@@ -1,6 +1,7 @@
 #include <nexus/media/media.h>
 
 #include <filesystem>
+#include <fstream>
 #include <memory>
 #include <string>
 #include <utility>
@@ -35,6 +36,18 @@ void diagnostic_log(log::Level level, const std::string& message) {
 
 std::string path_string(const std::filesystem::path& path) {
     return path.string();
+}
+
+void write_u16_le(std::ostream& output, std::uint16_t value) {
+    output.put(static_cast<char>(value & 0xff));
+    output.put(static_cast<char>((value >> 8) & 0xff));
+}
+
+void write_u32_le(std::ostream& output, std::uint32_t value) {
+    output.put(static_cast<char>(value & 0xff));
+    output.put(static_cast<char>((value >> 8) & 0xff));
+    output.put(static_cast<char>((value >> 16) & 0xff));
+    output.put(static_cast<char>((value >> 24) & 0xff));
 }
 
 #if defined(NEXUS_MEDIA_WITH_FFMPEG)
@@ -616,6 +629,131 @@ Result<MediaFrame> convert_video_frame(
     converted.data = std::move(output);
     return converted;
 #endif
+}
+
+Status write_wav_file(
+    const std::filesystem::path& path,
+    const std::vector<MediaFrame>& frames) {
+    if (path.empty()) {
+        return Status::invalid_argument("WAV path cannot be empty");
+    }
+    if (frames.empty()) {
+        return Status::invalid_argument("WAV frames cannot be empty");
+    }
+
+    const auto& first = frames.front();
+    if (first.type != MediaStreamType::audio ||
+        first.sample_rate <= 0 ||
+        first.channels <= 0 ||
+        first.bytes_per_sample <= 0 ||
+        first.planar ||
+        first.format_name != "s16") {
+        return Status::invalid_argument("WAV writer requires packed s16 audio frames");
+    }
+
+    std::uint64_t data_size = 0;
+    for (const auto& frame : frames) {
+        if (frame.type != MediaStreamType::audio ||
+            frame.sample_rate != first.sample_rate ||
+            frame.channels != first.channels ||
+            frame.bytes_per_sample != first.bytes_per_sample ||
+            frame.planar != first.planar ||
+            frame.format_name != first.format_name ||
+            frame.data.empty()) {
+            return Status::invalid_argument("WAV frames must be non-empty matching packed s16 audio");
+        }
+        data_size += frame.data.size();
+    }
+
+    if (data_size > 0xffffffffull - 36ull) {
+        return Status(StatusCode::kResourceExhausted, "WAV data is too large");
+    }
+
+    std::ofstream output(path, std::ios::binary);
+    if (!output) {
+        return Status::invalid_argument("WAV path cannot be opened");
+    }
+
+    const auto bits_per_sample = static_cast<std::uint16_t>(first.bytes_per_sample * 8);
+    const auto block_align = static_cast<std::uint16_t>(first.channels * first.bytes_per_sample);
+    const auto byte_rate = static_cast<std::uint32_t>(first.sample_rate * block_align);
+
+    output.write("RIFF", 4);
+    write_u32_le(output, static_cast<std::uint32_t>(36ull + data_size));
+    output.write("WAVE", 4);
+    output.write("fmt ", 4);
+    write_u32_le(output, 16);
+    write_u16_le(output, 1);
+    write_u16_le(output, static_cast<std::uint16_t>(first.channels));
+    write_u32_le(output, static_cast<std::uint32_t>(first.sample_rate));
+    write_u32_le(output, byte_rate);
+    write_u16_le(output, block_align);
+    write_u16_le(output, bits_per_sample);
+    output.write("data", 4);
+    write_u32_le(output, static_cast<std::uint32_t>(data_size));
+    for (const auto& frame : frames) {
+        output.write(
+            reinterpret_cast<const char*>(frame.data.data()),
+            static_cast<std::streamsize>(frame.data.size()));
+    }
+
+    if (!output) {
+        return Status::internal("WAV write failed");
+    }
+
+    return Status::ok_status();
+}
+
+Status write_ppm_file(
+    const std::filesystem::path& path,
+    const MediaFrame& frame) {
+    if (path.empty()) {
+        return Status::invalid_argument("PPM path cannot be empty");
+    }
+    if (frame.type != MediaStreamType::video ||
+        frame.width <= 0 ||
+        frame.height <= 0 ||
+        frame.data.empty()) {
+        return Status::invalid_argument("PPM writer requires a non-empty video frame");
+    }
+
+    const auto pixel_count = static_cast<std::size_t>(frame.width) *
+        static_cast<std::size_t>(frame.height);
+    const bool is_rgb24 = frame.format_name == "rgb24";
+    const bool is_rgba = frame.format_name == "rgba";
+    if (!is_rgb24 && !is_rgba) {
+        return Status::invalid_argument("PPM writer requires rgb24 or rgba frames");
+    }
+
+    const auto expected_size = pixel_count * (is_rgb24 ? 3u : 4u);
+    if (frame.data.size() < expected_size) {
+        return Status::invalid_argument("PPM frame data is smaller than expected");
+    }
+
+    std::ofstream output(path, std::ios::binary);
+    if (!output) {
+        return Status::invalid_argument("PPM path cannot be opened");
+    }
+
+    output << "P6\n" << frame.width << " " << frame.height << "\n255\n";
+    if (is_rgb24) {
+        output.write(
+            reinterpret_cast<const char*>(frame.data.data()),
+            static_cast<std::streamsize>(expected_size));
+    } else {
+        for (std::size_t pixel = 0; pixel < pixel_count; ++pixel) {
+            const auto offset = pixel * 4u;
+            output.put(static_cast<char>(frame.data[offset]));
+            output.put(static_cast<char>(frame.data[offset + 1]));
+            output.put(static_cast<char>(frame.data[offset + 2]));
+        }
+    }
+
+    if (!output) {
+        return Status::internal("PPM write failed");
+    }
+
+    return Status::ok_status();
 }
 
 MediaReader::MediaReader() = default;
