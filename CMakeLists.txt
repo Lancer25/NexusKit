@@ -36,6 +36,10 @@ if(NEXUS_ENABLE_NET AND NOT NEXUS_ENABLE_LOG)
     message(FATAL_ERROR "NEXUS_ENABLE_NET requires NEXUS_ENABLE_LOG for NexusKit diagnostic logging.")
 endif()
 
+if(NEXUS_ENABLE_HID AND NOT NEXUS_ENABLE_LOG)
+    message(FATAL_ERROR "NEXUS_ENABLE_HID requires NEXUS_ENABLE_LOG for NexusKit diagnostic logging.")
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -78,6 +82,10 @@ endif()
 
 if(NEXUS_ENABLE_NET)
     add_subdirectory(src/net)
+endif()
+
+if(NEXUS_ENABLE_HID)
+    add_subdirectory(src/hid)
 endif()
 
 if(NEXUS_BUILD_TESTS)

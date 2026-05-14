@@ -67,3 +67,17 @@ if(TARGET nexus::net)
 
     catch_discover_tests(nexus_net_tests)
 endif()
+
+if(TARGET nexus::hid)
+    add_executable(nexus_hid_tests
+        hid/hid_tests.cpp
+    )
+
+    target_link_libraries(nexus_hid_tests
+        PRIVATE
+            nexus::hid
+            Catch2::Catch2WithMain
+    )
+
+    catch_discover_tests(nexus_hid_tests)
+endif()
