@@ -67,7 +67,14 @@ struct MediaFrame {
     int height = 0;
     int sample_rate = 0;
     int channels = 0;
+    std::string format_name;
+    int bytes_per_sample = 0;
+    bool planar = false;
     std::vector<std::uint8_t> data;
+};
+
+struct MediaDecodeOptions {
+    MediaStreamType stream_type = MediaStreamType::audio;
 };
 
 NEXUS_MEDIA_API FfmpegBackendInfo ffmpeg_backend_info();
@@ -104,6 +111,9 @@ public:
     ~MediaDecoder();
 
     static Result<MediaDecoder> open(const std::filesystem::path& path);
+    static Result<MediaDecoder> open(
+        const std::filesystem::path& path,
+        const MediaDecodeOptions& options);
 
     bool is_open() const;
     Result<MediaFrame> read_frame();

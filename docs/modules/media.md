@@ -12,12 +12,17 @@
 - `nexus::media::probe_media`: validates a media path and probes container/stream metadata when FFmpeg is available.
 - `nexus::media::MediaPacket`: encoded packet bytes plus stream index, timestamps, duration, and key-frame flag.
 - `nexus::media::MediaReader`: move-only RAII reader that opens a media file and reads encoded packets.
-- `nexus::media::MediaFrame`: decoded frame metadata and bytes.
-- `nexus::media::MediaDecoder`: move-only RAII decoder that opens a media file and reads decoded audio frames.
+- `nexus::media::MediaFrame`: decoded frame metadata and bytes, including audio sample format or video pixel format names when available.
+- `nexus::media::MediaDecodeOptions`: decoder open options. `stream_type` defaults to audio and can be set to video.
+- `nexus::media::MediaDecoder`: move-only RAII decoder that opens a media file and reads decoded audio or video frames.
 
 ## Scope
 
-The initial module does not encode, remux, resample, or capture media. It gives applications and tests a stable way to detect whether this NexusKit build was linked with FFmpeg targets, request lightweight file metadata, read encoded packets, and decode the first slice of audio frames before broader decoder abstractions are added.
+The initial module does not encode, remux, resample, scale, convert pixel formats, or capture media. It gives applications and tests a stable way to detect whether this NexusKit build was linked with FFmpeg targets, request lightweight file metadata, read encoded packets, and decode the first slices of audio and video frames before broader decoder abstractions are added.
+
+Decoded audio frames include sample rate, channel count, FFmpeg sample format name, bytes per sample, and whether the decoded frame is planar. Packed audio is copied as a single interleaved byte buffer. Planar audio is copied channel-by-channel into one contiguous byte buffer.
+
+Decoded video frames include width, height, FFmpeg pixel format name, and backend-native frame bytes. NexusKit does not currently convert video frames to RGB/BGR or normalize line padding.
 
 ## Backend
 

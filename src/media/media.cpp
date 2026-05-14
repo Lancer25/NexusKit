@@ -13,6 +13,8 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/channel_layout.h>
 #include <libavutil/error.h>
+#include <libavutil/imgutils.h>
+#include <libavutil/pixdesc.h>
 #include <libavutil/avutil.h>
 }
 #endif
@@ -95,6 +97,20 @@ int frame_channel_count(const AVFrame& frame) {
 #else
     return frame.channels;
 #endif
+}
+
+AVMediaType to_av_media_type(MediaStreamType type) {
+    switch (type) {
+    case MediaStreamType::video:
+        return AVMEDIA_TYPE_VIDEO;
+    case MediaStreamType::audio:
+        return AVMEDIA_TYPE_AUDIO;
+    case MediaStreamType::subtitle:
+        return AVMEDIA_TYPE_SUBTITLE;
+    case MediaStreamType::unknown:
+    default:
+        return AVMEDIA_TYPE_UNKNOWN;
+    }
 }
 
 MediaStreamType to_stream_type(AVMediaType type) {
@@ -195,10 +211,12 @@ public:
     MediaDecoderStorage(
         std::unique_ptr<AVFormatContext, FormatContextDeleter> format_context,
         std::unique_ptr<AVCodecContext, CodecContextDeleter> codec_context,
-        int stream_index)
+        int stream_index,
+        MediaStreamType stream_type)
         : format_context_(std::move(format_context)),
           codec_context_(std::move(codec_context)),
-          stream_index_(stream_index) {}
+          stream_index_(stream_index),
+          stream_type_(stream_type) {}
 
     AVFormatContext* format_context() const {
         return format_context_.get();
@@ -212,6 +230,10 @@ public:
         return stream_index_;
     }
 
+    MediaStreamType stream_type() const {
+        return stream_type_;
+    }
+
     bool is_open() const {
         return format_context_ != nullptr && codec_context_ != nullptr;
     }
@@ -220,6 +242,7 @@ public:
         codec_context_.reset();
         format_context_.reset();
         stream_index_ = -1;
+        stream_type_ = MediaStreamType::unknown;
     }
 #else
     bool is_open() const {
@@ -234,6 +257,7 @@ private:
     std::unique_ptr<AVFormatContext, FormatContextDeleter> format_context_;
     std::unique_ptr<AVCodecContext, CodecContextDeleter> codec_context_;
     int stream_index_ = -1;
+    MediaStreamType stream_type_ = MediaStreamType::unknown;
 #endif
 };
 
@@ -402,6 +426,12 @@ MediaDecoder& MediaDecoder::operator=(MediaDecoder&& other) noexcept = default;
 MediaDecoder::~MediaDecoder() = default;
 
 Result<MediaDecoder> MediaDecoder::open(const std::filesystem::path& path) {
+    return open(path, MediaDecodeOptions{});
+}
+
+Result<MediaDecoder> MediaDecoder::open(
+    const std::filesystem::path& path,
+    const MediaDecodeOptions& options) {
     const std::string operation = "Media decoder open";
     diagnostic_log(log::Level::debug, operation + " path=" + path_string(path));
 
@@ -411,6 +441,7 @@ Result<MediaDecoder> MediaDecoder::open(const std::filesystem::path& path) {
     }
 
 #if !defined(NEXUS_MEDIA_WITH_FFMPEG)
+    static_cast<void>(options);
     auto status = backend_unavailable_status();
     diagnostic_log(log::Level::warn, operation + " failed: " + status.message());
     return status;
@@ -422,15 +453,22 @@ Result<MediaDecoder> MediaDecoder::open(const std::filesystem::path& path) {
         return status;
     }
 
+    const auto media_type = to_av_media_type(options.stream_type);
+    if (media_type == AVMEDIA_TYPE_UNKNOWN || media_type == AVMEDIA_TYPE_SUBTITLE) {
+        status = Status::invalid_argument("media decoder stream type is not supported");
+        diagnostic_log(log::Level::warn, operation + " failed: " + status.message());
+        return status;
+    }
+
     const auto stream_index = av_find_best_stream(
         format_context.get(),
-        AVMEDIA_TYPE_AUDIO,
+        media_type,
         -1,
         -1,
         nullptr,
         0);
     if (stream_index < 0) {
-        status = Status::not_found("media audio stream not found");
+        status = Status::not_found("media decoder stream not found");
         diagnostic_log(log::Level::warn, operation + " failed: " + status.message());
         return status;
     }
@@ -467,7 +505,8 @@ Result<MediaDecoder> MediaDecoder::open(const std::filesystem::path& path) {
     return MediaDecoder(std::make_unique<detail::MediaDecoderStorage>(
         std::move(format_context),
         std::move(codec_context),
-        stream_index));
+        stream_index,
+        options.stream_type));
 #endif
 }
 
@@ -521,16 +560,66 @@ Result<MediaFrame> MediaDecoder::read_frame() {
 
         MediaFrame result;
         result.stream_index = storage_->stream_index();
-        result.type = MediaStreamType::audio;
+        result.type = storage_->stream_type();
         result.pts = frame->pts == AV_NOPTS_VALUE ? 0 : frame->pts;
-        result.sample_rate = frame->sample_rate;
-        result.channels = frame_channel_count(*frame);
 
-        const auto bytes_per_sample = av_get_bytes_per_sample(
-            static_cast<AVSampleFormat>(frame->format));
-        if (bytes_per_sample > 0 && frame->data[0] != nullptr && frame->nb_samples > 0) {
-            const auto byte_count = frame->nb_samples * result.channels * bytes_per_sample;
-            result.data.assign(frame->data[0], frame->data[0] + byte_count);
+        if (result.type == MediaStreamType::audio) {
+            const auto sample_format = static_cast<AVSampleFormat>(frame->format);
+            const char* sample_format_name = av_get_sample_fmt_name(sample_format);
+            result.format_name = sample_format_name == nullptr ? "" : sample_format_name;
+            result.bytes_per_sample = av_get_bytes_per_sample(sample_format);
+            result.planar = av_sample_fmt_is_planar(sample_format) != 0;
+            result.sample_rate = frame->sample_rate;
+            result.channels = frame_channel_count(*frame);
+        } else if (result.type == MediaStreamType::video) {
+            const auto pixel_format = static_cast<AVPixelFormat>(frame->format);
+            const char* pixel_format_name = av_get_pix_fmt_name(pixel_format);
+            result.format_name = pixel_format_name == nullptr ? "" : pixel_format_name;
+            result.width = frame->width;
+            result.height = frame->height;
+        }
+
+        if (result.type == MediaStreamType::audio &&
+            result.bytes_per_sample > 0 &&
+            frame->nb_samples > 0) {
+            if (result.planar) {
+                const auto plane_size = frame->nb_samples * result.bytes_per_sample;
+                result.data.reserve(static_cast<std::size_t>(plane_size * result.channels));
+                for (int channel = 0; channel < result.channels; ++channel) {
+                    if (frame->data[channel] != nullptr) {
+                        result.data.insert(
+                            result.data.end(),
+                            frame->data[channel],
+                            frame->data[channel] + plane_size);
+                    }
+                }
+            } else if (frame->data[0] != nullptr) {
+                const auto byte_count =
+                    frame->nb_samples * result.channels * result.bytes_per_sample;
+                result.data.assign(frame->data[0], frame->data[0] + byte_count);
+            }
+        } else if (result.type == MediaStreamType::video && result.width > 0 && result.height > 0) {
+            const auto pixel_format = static_cast<AVPixelFormat>(frame->format);
+            const auto buffer_size =
+                av_image_get_buffer_size(pixel_format, result.width, result.height, 1);
+            if (buffer_size < 0) {
+                return Status::invalid_argument(
+                    "FFmpeg image buffer size failed: " + ffmpeg_error(buffer_size));
+            }
+            result.data.resize(static_cast<std::size_t>(buffer_size));
+            const auto copy_result = av_image_copy_to_buffer(
+                result.data.data(),
+                buffer_size,
+                frame->data,
+                frame->linesize,
+                pixel_format,
+                result.width,
+                result.height,
+                1);
+            if (copy_result < 0) {
+                return Status::invalid_argument(
+                    "FFmpeg image copy failed: " + ffmpeg_error(copy_result));
+            }
         }
 
         diagnostic_log(

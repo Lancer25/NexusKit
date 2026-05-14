@@ -68,6 +68,21 @@ std::filesystem::path write_pcm_wav_fixture(const std::string& name) {
     return path;
 }
 
+std::filesystem::path write_ppm_fixture(const std::string& name) {
+    const auto path = test_media_path(name);
+
+    std::ofstream file(path, std::ios::binary);
+    file << "P6\n2 2\n255\n";
+    const unsigned char pixels[] = {
+        255, 0, 0,
+        0, 255, 0,
+        0, 0, 255,
+        255, 255, 255,
+    };
+    file.write(reinterpret_cast<const char*>(pixels), static_cast<std::streamsize>(sizeof(pixels)));
+    return path;
+}
+
 } // namespace
 
 TEST_CASE("Media backend reports linked FFmpeg versions") {
@@ -275,4 +290,54 @@ TEST_CASE("Media decoder reads audio frames when FFmpeg backend is available") {
 
     CHECK(decoder.value().close().ok());
     CHECK_FALSE(decoder.value().is_open());
+}
+
+TEST_CASE("Media decoder accepts explicit audio options") {
+    const auto backend = nexus::media::ffmpeg_backend_info();
+    if (!backend.available) {
+        return;
+    }
+
+    const auto path = write_pcm_wav_fixture("decoder-options-audio.wav");
+    nexus::media::MediaDecodeOptions options;
+    options.stream_type = nexus::media::MediaStreamType::audio;
+
+    auto decoder = nexus::media::MediaDecoder::open(path, options);
+    REQUIRE(decoder.ok());
+
+    const auto frame = decoder.value().read_frame();
+    REQUIRE(frame.ok());
+    CHECK(frame.value().type == nexus::media::MediaStreamType::audio);
+    CHECK(frame.value().sample_rate == 8000);
+    CHECK(frame.value().channels == 1);
+    CHECK(frame.value().format_name == "s16");
+    CHECK(frame.value().bytes_per_sample == 2);
+    CHECK_FALSE(frame.value().planar);
+    CHECK_FALSE(frame.value().data.empty());
+    REQUIRE(frame.value().bytes_per_sample > 0);
+    REQUIRE(frame.value().channels > 0);
+    CHECK(frame.value().data.size() % static_cast<std::size_t>(
+        frame.value().channels * frame.value().bytes_per_sample) == 0);
+}
+
+TEST_CASE("Media decoder reads video frames when FFmpeg backend is available") {
+    const auto backend = nexus::media::ffmpeg_backend_info();
+    if (!backend.available) {
+        return;
+    }
+
+    const auto path = write_ppm_fixture("decoder-video.ppm");
+    nexus::media::MediaDecodeOptions options;
+    options.stream_type = nexus::media::MediaStreamType::video;
+
+    auto decoder = nexus::media::MediaDecoder::open(path, options);
+    REQUIRE(decoder.ok());
+
+    const auto frame = decoder.value().read_frame();
+    REQUIRE(frame.ok());
+    CHECK(frame.value().type == nexus::media::MediaStreamType::video);
+    CHECK(frame.value().width == 2);
+    CHECK(frame.value().height == 2);
+    CHECK_FALSE(frame.value().format_name.empty());
+    CHECK_FALSE(frame.value().data.empty());
 }
