@@ -15,6 +15,8 @@ target_compile_features(nexus_media PUBLIC cxx_std_17)
 target_link_libraries(nexus_media
     PUBLIC
         nexus::core
+    PRIVATE
+        nexus::log
 )
 
 if(TARGET FFmpeg::avutil AND TARGET FFmpeg::avcodec AND TARGET FFmpeg::avformat)

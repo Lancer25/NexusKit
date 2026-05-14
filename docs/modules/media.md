@@ -27,3 +27,7 @@ Public `nexus_media` headers do not expose FFmpeg headers or FFmpeg ownership ty
 - Missing probe paths return `StatusCode::kNotFound`.
 - Builds without an FFmpeg backend return `StatusCode::kFailedPrecondition` for existing files.
 - Invalid or unsupported media inputs return `StatusCode::kInvalidArgument` from the FFmpeg-backed parser.
+
+## Diagnostics
+
+Backend checks, probe start events, validation failures, unavailable-backend failures, parser failures, and successful probe summaries are written through `nexus::log::write`. Install a default logger with `nexus::log::set_default_logger` to capture these events. Without a default logger, diagnostics are silent.

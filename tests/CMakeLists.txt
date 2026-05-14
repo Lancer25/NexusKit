@@ -104,6 +104,7 @@ if(TARGET nexus::media)
     target_link_libraries(nexus_media_tests
         PRIVATE
             nexus::media
+            nexus::log
             Catch2::Catch2WithMain
     )
 

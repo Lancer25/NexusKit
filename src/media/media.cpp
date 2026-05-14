@@ -5,6 +5,8 @@
 #include <string>
 #include <utility>
 
+#include <nexus/log/logger.h>
+
 #if defined(NEXUS_MEDIA_WITH_FFMPEG)
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -21,6 +23,14 @@ namespace {
 
 Status backend_unavailable_status() {
     return Status(StatusCode::kFailedPrecondition, "FFmpeg backend is not available");
+}
+
+void diagnostic_log(log::Level level, const std::string& message) {
+    log::write(level, message);
+}
+
+std::string path_string(const std::filesystem::path& path) {
+    return path.string();
 }
 
 #if defined(NEXUS_MEDIA_WITH_FFMPEG)
@@ -93,33 +103,48 @@ FfmpegBackendInfo ffmpeg_backend_info() {
     info.configuration = avutil_configuration();
 #endif
 
+    diagnostic_log(
+        log::Level::debug,
+        std::string("Media FFmpeg backend available=") + (info.available ? "true" : "false"));
     return info;
 }
 
 Result<MediaProbeInfo> probe_media(const std::filesystem::path& path) {
+    diagnostic_log(log::Level::debug, "Media probe path=" + path_string(path));
+
     if (path.empty()) {
-        return Status::invalid_argument("media path cannot be empty");
+        auto status = Status::invalid_argument("media path cannot be empty");
+        diagnostic_log(log::Level::warn, "Media probe failed: " + status.message());
+        return status;
     }
 
     if (!std::filesystem::exists(path)) {
-        return Status::not_found("media path does not exist");
+        auto status = Status::not_found("media path does not exist");
+        diagnostic_log(log::Level::warn, "Media probe failed: " + status.message());
+        return status;
     }
 
 #if !defined(NEXUS_MEDIA_WITH_FFMPEG)
-    return backend_unavailable_status();
+    auto status = backend_unavailable_status();
+    diagnostic_log(log::Level::warn, "Media probe failed: " + status.message());
+    return status;
 #else
     AVFormatContext* raw_context = nullptr;
     const auto open_result = avformat_open_input(&raw_context, path.string().c_str(), nullptr, nullptr);
     if (open_result < 0) {
-        return Status::invalid_argument("FFmpeg open input failed: " + ffmpeg_error(open_result));
+        auto status = Status::invalid_argument("FFmpeg open input failed: " + ffmpeg_error(open_result));
+        diagnostic_log(log::Level::warn, "Media probe failed: " + status.message());
+        return status;
     }
 
     std::unique_ptr<AVFormatContext, FormatContextDeleter> context(raw_context);
 
     const auto stream_result = avformat_find_stream_info(context.get(), nullptr);
     if (stream_result < 0) {
-        return Status::invalid_argument(
+        auto status = Status::invalid_argument(
             "FFmpeg stream info failed: " + ffmpeg_error(stream_result));
+        diagnostic_log(log::Level::warn, "Media probe failed: " + status.message());
+        return status;
     }
 
     MediaProbeInfo info;
@@ -140,6 +165,10 @@ Result<MediaProbeInfo> probe_media(const std::filesystem::path& path) {
         }
     }
 
+    diagnostic_log(
+        log::Level::info,
+        "Media probe format=" + info.format_name +
+            " streams=" + std::to_string(info.streams.size()));
     return info;
 #endif
 }
