@@ -95,3 +95,17 @@ if(TARGET nexus::usb)
 
     catch_discover_tests(nexus_usb_tests)
 endif()
+
+if(TARGET nexus::media)
+    add_executable(nexus_media_tests
+        media/media_tests.cpp
+    )
+
+    target_link_libraries(nexus_media_tests
+        PRIVATE
+            nexus::media
+            Catch2::Catch2WithMain
+    )
+
+    catch_discover_tests(nexus_media_tests)
+endif()

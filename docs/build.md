@@ -84,6 +84,7 @@ OpenSSL source builds require Perl. On Windows they also require `nmake` from a 
 `nexus_net` is enabled by default through `NEXUS_ENABLE_NET=ON` and uses cpp-httplib, standalone Asio, and websocketpp as private backends for HTTP, TCP, UDP, and WebSocket utilities. It depends on `nexus_log` for internal diagnostics, so `NEXUS_ENABLE_NET=ON` requires `NEXUS_ENABLE_LOG=ON`.
 `nexus_hid` is enabled with `NEXUS_ENABLE_HID=ON` and uses hidapi as a private backend. To build hidapi from source, also set `NEXUS_BUILD_HIDAPI=ON`. It depends on `nexus_log` for internal diagnostics, so `NEXUS_ENABLE_HID=ON` requires `NEXUS_ENABLE_LOG=ON`.
 `nexus_usb` is enabled with `NEXUS_ENABLE_USB=ON`. The initial implementation uses `nexus_hid` for HID-backed device discovery, so it requires both `NEXUS_ENABLE_LOG=ON` and `NEXUS_ENABLE_HID=ON`.
+`nexus_media` is enabled with `NEXUS_ENABLE_MEDIA=ON`. The first media slice builds without FFmpeg and reports the backend as unavailable unless FFmpeg CMake targets are present. To use the source-built FFmpeg backend, also set `NEXUS_BUILD_FFMPEG=ON`.
 
 For the Windows FFmpeg source build, the tested MSYS2 UCRT64 package set is:
 

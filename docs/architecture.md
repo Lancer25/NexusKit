@@ -16,7 +16,7 @@ Recipes are intentionally opt-in. The top-level build only activates heavyweight
 - Current Phase 4: `nexus_net` provides networking components. It currently includes HTTP, synchronous TCP, synchronous UDP, and synchronous WebSocket utilities, with diagnostics routed through `nexus_log`.
 - Current Phase 5: `nexus_usb` provides USB device discovery and HID-backed report I/O facade APIs and will expand toward UVC and hotplug support.
 - Current Phase 5: `nexus_hid` provides HID device enumeration through a private hidapi backend.
-- Planned: `nexus_media` will provide FFmpeg-based media processing.
+- Current Phase 6: `nexus_media` provides media backend discovery and will expand into FFmpeg-based media processing.
 - Planned: `nexus_screen` will provide desktop and window capture.
 
 ## Rules

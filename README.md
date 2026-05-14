@@ -6,7 +6,7 @@ The project is a new implementation inspired by earlier internal component-libra
 
 ## Status
 
-NexusKit is in early development. The current milestone establishes the CMake project skeleton, `nexus_core`, `nexus_log`, `nexus_common`, `nexus_net`, tests, examples, and documentation.
+NexusKit is in early development. The current milestone establishes the CMake project skeleton, `nexus_core`, `nexus_log`, `nexus_common`, `nexus_net`, `nexus_hid`, `nexus_usb`, the first `nexus_media` slice, tests, examples, and documentation.
 
 ## Requirements
 
@@ -39,5 +39,5 @@ cmake --preset windows-msvc-debug
 - Current Phase 4: `nexus_net`: HTTP, TCP, UDP, and WebSocket utilities with private cpp-httplib/Asio/websocketpp backends and NexusKit diagnostics.
 - Current Phase 5: `nexus_usb`: USB device discovery and HID-backed report I/O facade.
 - Current Phase 5: `nexus_hid`: HID device enumeration with a private hidapi backend.
-- Planned: `nexus_media`: FFmpeg-based audio/video processing.
+- Current Phase 6: `nexus_media`: media backend discovery with an optional FFmpeg version probe.
 - Planned: `nexus_screen`: desktop and window capture.
