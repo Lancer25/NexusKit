@@ -9,6 +9,7 @@
 #include <utility>
 
 #include <httplib.h>
+#include <nexus/log/logger.h>
 
 namespace nexus::net {
 
@@ -145,6 +146,20 @@ Status error_to_status(httplib::Error error) {
     }
 }
 
+void diagnostic_log(log::Level level, const std::string& message) {
+    log::write(level, message);
+}
+
+std::string request_prefix(std::string_view method, std::string_view path) {
+    return "HTTP " + std::string(method) + " " + normalize_path(path);
+}
+
+Status log_and_return_failure(std::string_view operation, httplib::Error error) {
+    const auto status = error_to_status(error);
+    diagnostic_log(log::Level::warn, std::string(operation) + " failed: " + status.message());
+    return status;
+}
+
 httplib::Headers to_backend_headers(const std::vector<HttpHeader>& headers) {
     httplib::Headers backend_headers;
     for (const auto& header : headers) {
@@ -163,6 +178,16 @@ HttpResponse to_response(const httplib::Response& backend_response) {
         response.headers.push_back(HttpHeader{header.first, header.second});
     }
 
+    return response;
+}
+
+HttpResponse log_and_return_response(std::string_view operation, const httplib::Response& backend_response) {
+    auto response = to_response(backend_response);
+    diagnostic_log(
+        log::Level::info,
+        std::string(operation) +
+            " status=" + std::to_string(response.status_code) +
+            " bytes=" + std::to_string(response.body.size()));
     return response;
 }
 
@@ -211,8 +236,10 @@ Result<HttpClient> HttpClient::create(std::string base_url, HttpClientOptions op
     }
 
     try {
+        diagnostic_log(log::Level::debug, "HTTP client create base_url=" + base_url);
         return HttpClient(make_storage(std::move(base_url), options));
     } catch (const std::exception& error) {
+        diagnostic_log(log::Level::warn, std::string("HTTP client create failed: ") + error.what());
         return Status::internal(error.what());
     }
 }
@@ -220,12 +247,15 @@ Result<HttpClient> HttpClient::create(std::string base_url, HttpClientOptions op
 Result<HttpResponse> HttpClient::get(
     std::string_view path,
     const std::vector<HttpHeader>& headers) const {
+    const auto operation = request_prefix("GET", path);
+    diagnostic_log(log::Level::debug, operation);
+
     const auto result = storage_->client.Get(normalize_path(path), to_backend_headers(headers));
     if (!result) {
-        return error_to_status(result.error());
+        return log_and_return_failure(operation, result.error());
     }
 
-    return to_response(*result);
+    return log_and_return_response(operation, *result);
 }
 
 Result<HttpResponse> HttpClient::post(
@@ -233,6 +263,9 @@ Result<HttpResponse> HttpClient::post(
     std::string_view body,
     std::string_view content_type,
     const std::vector<HttpHeader>& headers) const {
+    const auto operation = request_prefix("POST", path);
+    diagnostic_log(log::Level::debug, operation + " bytes=" + std::to_string(body.size()));
+
     const auto result = storage_->client.Post(
         normalize_path(path),
         to_backend_headers(headers),
@@ -240,10 +273,10 @@ Result<HttpResponse> HttpClient::post(
         std::string(content_type));
 
     if (!result) {
-        return error_to_status(result.error());
+        return log_and_return_failure(operation, result.error());
     }
 
-    return to_response(*result);
+    return log_and_return_response(operation, *result);
 }
 
 Result<HttpResponse> HttpClient::put(
@@ -251,6 +284,9 @@ Result<HttpResponse> HttpClient::put(
     std::string_view body,
     std::string_view content_type,
     const std::vector<HttpHeader>& headers) const {
+    const auto operation = request_prefix("PUT", path);
+    diagnostic_log(log::Level::debug, operation + " bytes=" + std::to_string(body.size()));
+
     const auto result = storage_->client.Put(
         normalize_path(path),
         to_backend_headers(headers),
@@ -258,21 +294,24 @@ Result<HttpResponse> HttpClient::put(
         std::string(content_type));
 
     if (!result) {
-        return error_to_status(result.error());
+        return log_and_return_failure(operation, result.error());
     }
 
-    return to_response(*result);
+    return log_and_return_response(operation, *result);
 }
 
 Result<HttpResponse> HttpClient::del(
     std::string_view path,
     const std::vector<HttpHeader>& headers) const {
+    const auto operation = request_prefix("DELETE", path);
+    diagnostic_log(log::Level::debug, operation);
+
     const auto result = storage_->client.Delete(normalize_path(path), to_backend_headers(headers));
     if (!result) {
-        return error_to_status(result.error());
+        return log_and_return_failure(operation, result.error());
     }
 
-    return to_response(*result);
+    return log_and_return_response(operation, *result);
 }
 
 HttpClient::HttpClient(std::shared_ptr<detail::HttpClientStorage> storage)

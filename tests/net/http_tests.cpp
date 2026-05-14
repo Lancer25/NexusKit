@@ -1,12 +1,16 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <thread>
 
 #include <httplib.h>
 
 #include <nexus/core/status.h>
+#include <nexus/log/logger.h>
 #include <nexus/net/http.h>
 
 namespace {
@@ -84,6 +88,20 @@ private:
     int port_ = 0;
     std::thread thread_;
 };
+
+std::string read_file(const std::filesystem::path& path) {
+    std::ifstream input(path);
+    std::ostringstream output;
+    output << input.rdbuf();
+    return output.str();
+}
+
+std::filesystem::path test_log_path(const std::string& name) {
+    auto path = std::filesystem::temp_directory_path() / "nexuskit-tests" / name;
+    std::filesystem::create_directories(path.parent_path());
+    std::filesystem::remove(path);
+    return path;
+}
 
 } // namespace
 
@@ -214,4 +232,27 @@ TEST_CASE("HttpClient rejects unsupported base URLs") {
 
     REQUIRE_FALSE(client.ok());
     CHECK(client.status().code() == nexus::StatusCode::kInvalidArgument);
+}
+
+TEST_CASE("HttpClient writes diagnostic logs when a default logger is installed") {
+    LocalHttpServer server;
+    const auto path = test_log_path("http_client_diagnostics.log");
+    auto logger = nexus::log::create_file_logger("http_client_diagnostics", path);
+    REQUIRE(logger.ok());
+
+    nexus::log::clear_default_logger();
+    nexus::log::set_default_logger(logger.value());
+
+    const auto client = nexus::net::HttpClient::create(server.base_url());
+    REQUIRE(client.ok());
+
+    const auto response = client.value().get("/health");
+    REQUIRE(response.ok());
+
+    nexus::log::default_logger().flush();
+    nexus::log::clear_default_logger();
+
+    const auto contents = read_file(path);
+    REQUIRE(contents.find("HTTP GET /health") != std::string::npos);
+    REQUIRE(contents.find("status=200") != std::string::npos);
 }

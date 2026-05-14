@@ -6,6 +6,7 @@
 #include <utility>
 
 #include <asio.hpp>
+#include <nexus/log/logger.h>
 
 namespace nexus::net {
 
@@ -23,6 +24,10 @@ namespace {
 
 Status asio_status(const std::exception& error) {
     return Status(StatusCode::kUnavailable, error.what());
+}
+
+void diagnostic_log(log::Level level, const std::string& message) {
+    log::write(level, message);
 }
 
 Status validate_endpoint(const TcpEndpoint& endpoint) {
@@ -58,10 +63,13 @@ Result<TcpClient> TcpClient::connect(const TcpEndpoint& endpoint) {
     try {
         auto storage = make_storage();
         asio::ip::tcp::resolver resolver(storage->io);
+        diagnostic_log(log::Level::debug, "TCP connect " + endpoint.host + ":" + std::to_string(endpoint.port));
         const auto endpoints = resolver.resolve(endpoint.host, std::to_string(endpoint.port));
         asio::connect(storage->socket, endpoints);
+        diagnostic_log(log::Level::info, "TCP connected " + endpoint.host + ":" + std::to_string(endpoint.port));
         return TcpClient(std::move(storage));
     } catch (const std::exception& error) {
+        diagnostic_log(log::Level::warn, std::string("TCP connect failed: ") + error.what());
         return asio_status(error);
     }
 }
@@ -77,8 +85,10 @@ Status TcpClient::write_all(std::string_view data) {
 
     try {
         asio::write(storage_->socket, asio::buffer(data.data(), data.size()));
+        diagnostic_log(log::Level::debug, "TCP write bytes=" + std::to_string(data.size()));
         return Status::ok_status();
     } catch (const std::exception& error) {
+        diagnostic_log(log::Level::warn, std::string("TCP write failed: ") + error.what());
         return asio_status(error);
     }
 }
@@ -96,8 +106,10 @@ Result<std::string> TcpClient::read_some(std::size_t max_bytes) {
         std::string buffer(max_bytes, '\0');
         const auto bytes_read = storage_->socket.read_some(asio::buffer(buffer.data(), buffer.size()));
         buffer.resize(bytes_read);
+        diagnostic_log(log::Level::debug, "TCP read bytes=" + std::to_string(bytes_read));
         return buffer;
     } catch (const std::exception& error) {
+        diagnostic_log(log::Level::warn, std::string("TCP read failed: ") + error.what());
         return asio_status(error);
     }
 }
@@ -111,8 +123,10 @@ Status TcpClient::close() {
         asio::error_code ignored;
         storage_->socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignored);
         storage_->socket.close(ignored);
+        diagnostic_log(log::Level::debug, "TCP close");
         return Status::ok_status();
     } catch (const std::exception& error) {
+        diagnostic_log(log::Level::warn, std::string("TCP close failed: ") + error.what());
         return asio_status(error);
     }
 }

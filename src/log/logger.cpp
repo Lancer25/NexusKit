@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <string_view>
 
@@ -10,6 +11,16 @@
 
 namespace nexus::log {
 namespace {
+
+std::mutex& default_logger_mutex() {
+    static std::mutex mutex;
+    return mutex;
+}
+
+Logger& default_logger_storage() {
+    static Logger logger;
+    return logger;
+}
 
 spdlog::level::level_enum to_spdlog_level(Level level) {
     switch (level) {
@@ -132,6 +143,25 @@ Result<Logger> create_file_logger(std::string name, const std::filesystem::path&
     } catch (const std::filesystem::filesystem_error& error) {
         return Status::internal(error.what());
     }
+}
+
+void set_default_logger(Logger logger) {
+    std::lock_guard<std::mutex> lock(default_logger_mutex());
+    default_logger_storage() = std::move(logger);
+}
+
+Logger default_logger() {
+    std::lock_guard<std::mutex> lock(default_logger_mutex());
+    return default_logger_storage();
+}
+
+void clear_default_logger() {
+    std::lock_guard<std::mutex> lock(default_logger_mutex());
+    default_logger_storage() = Logger();
+}
+
+void write(Level level, std::string_view message) {
+    default_logger().log(level, message);
 }
 
 } // namespace nexus::log

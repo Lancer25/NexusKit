@@ -55,4 +55,9 @@ NEXUS_LOG_API Result<Logger> create_file_logger(
     const std::filesystem::path& path,
     LoggerOptions options = {});
 
+NEXUS_LOG_API void set_default_logger(Logger logger);
+NEXUS_LOG_API Logger default_logger();
+NEXUS_LOG_API void clear_default_logger();
+NEXUS_LOG_API void write(Level level, std::string_view message);
+
 } // namespace nexus::log

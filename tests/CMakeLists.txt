@@ -56,6 +56,7 @@ if(TARGET nexus::net)
     target_link_libraries(nexus_net_tests
         PRIVATE
             nexus::net
+            nexus::log
             asio::asio
             httplib::httplib
             Catch2::Catch2WithMain

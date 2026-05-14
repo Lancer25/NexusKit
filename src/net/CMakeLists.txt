@@ -21,6 +21,7 @@ target_link_libraries(nexus_net
     PUBLIC
         nexus::core
     PRIVATE
+        nexus::log
         $<BUILD_INTERFACE:asio::asio>
         $<BUILD_INTERFACE:httplib::httplib>
 )

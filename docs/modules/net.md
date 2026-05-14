@@ -1,6 +1,6 @@
 # nexus_net
 
-`nexus_net` contains cross-platform networking utilities. The first component is an HTTP client wrapper that keeps cpp-httplib out of public headers.
+`nexus_net` contains cross-platform networking utilities. It keeps cpp-httplib and Asio out of public headers and routes internal diagnostics through `nexus_log`.
 
 ## Current API
 
@@ -28,6 +28,10 @@ The initial HTTP client supports `http://` base URLs without a path, GET, POST, 
 ## Backend
 
 The current HTTP backend is cpp-httplib. The current TCP backend is standalone Asio. Both are included only from implementation and test files, so users of `nexus_net` depend on NexusKit headers instead of third-party networking headers.
+
+## Diagnostics
+
+HTTP requests, TCP connection/read/write/close operations, and UDP bind/send/receive/close operations write diagnostic messages through `nexus::log::write`. Install a default logger with `nexus::log::set_default_logger` to capture these events. Without a default logger, diagnostics are silent.
 
 ## Error Model
 

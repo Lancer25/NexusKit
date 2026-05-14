@@ -5,6 +5,7 @@
 #include <utility>
 
 #include <asio.hpp>
+#include <nexus/log/logger.h>
 
 namespace nexus::net {
 
@@ -22,6 +23,10 @@ namespace {
 
 Status asio_status(const std::exception& error) {
     return Status(StatusCode::kUnavailable, error.what());
+}
+
+void diagnostic_log(log::Level level, const std::string& message) {
+    log::write(level, message);
 }
 
 Status validate_bind_endpoint(const UdpEndpoint& endpoint) {
@@ -74,8 +79,10 @@ Result<UdpSocket> UdpSocket::bind(const UdpEndpoint& local) {
         auto storage = make_storage();
         storage->socket.open(asio::ip::udp::v4());
         storage->socket.bind(to_asio_endpoint(local));
+        diagnostic_log(log::Level::info, "UDP bound " + local.host + ":" + std::to_string(local.port));
         return UdpSocket(std::move(storage));
     } catch (const std::exception& error) {
+        diagnostic_log(log::Level::warn, std::string("UDP bind failed: ") + error.what());
         return asio_status(error);
     }
 }
@@ -96,8 +103,14 @@ Result<std::size_t> UdpSocket::send_to(std::string_view data, const UdpEndpoint&
 
     try {
         const auto endpoint = to_asio_endpoint(remote);
-        return storage_->socket.send_to(asio::buffer(data.data(), data.size()), endpoint);
+        const auto bytes_sent = storage_->socket.send_to(asio::buffer(data.data(), data.size()), endpoint);
+        diagnostic_log(
+            log::Level::debug,
+            "UDP send_to " + remote.host + ":" + std::to_string(remote.port) +
+                " bytes=" + std::to_string(bytes_sent));
+        return bytes_sent;
     } catch (const std::exception& error) {
+        diagnostic_log(log::Level::warn, std::string("UDP send_to failed: ") + error.what());
         return asio_status(error);
     }
 }
@@ -118,8 +131,14 @@ Result<UdpDatagram> UdpSocket::receive_from(std::size_t max_bytes) {
             asio::buffer(buffer.data(), buffer.size()),
             remote);
         buffer.resize(bytes_read);
-        return UdpDatagram{std::move(buffer), from_asio_endpoint(remote)};
+        const auto endpoint = from_asio_endpoint(remote);
+        diagnostic_log(
+            log::Level::debug,
+            "UDP receive_from " + endpoint.host + ":" + std::to_string(endpoint.port) +
+                " bytes=" + std::to_string(bytes_read));
+        return UdpDatagram{std::move(buffer), endpoint};
     } catch (const std::exception& error) {
+        diagnostic_log(log::Level::warn, std::string("UDP receive_from failed: ") + error.what());
         return asio_status(error);
     }
 }
@@ -132,8 +151,10 @@ Status UdpSocket::close() {
     try {
         asio::error_code ignored;
         storage_->socket.close(ignored);
+        diagnostic_log(log::Level::debug, "UDP close");
         return Status::ok_status();
     } catch (const std::exception& error) {
+        diagnostic_log(log::Level::warn, std::string("UDP close failed: ") + error.what());
         return asio_status(error);
     }
 }
