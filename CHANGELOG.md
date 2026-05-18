@@ -1,0 +1,70 @@
+# Changelog
+
+## 0.1.0 - Unreleased
+
+- Start NexusKit as a new cross-platform C++17 component library.
+- Add initial CMake project skeleton.
+- Add `nexus_core` with status/result foundations.
+- Add initial tests, examples, and documentation.
+- Extend `nexus_media` decoding with explicit audio/video stream selection and decoded frame format metadata.
+- Add `nexus_media` audio resampling/sample-format conversion and video RGB-family pixel conversion helpers.
+- Add lightweight `nexus_media` WAV and PPM frame writer helpers.
+- Extend the `nexus_media` PPM writer to accept BGR24 and BGRA video frames.
+- Add `nexus_media` format-name helpers for public audio/video format enums.
+- Add a `nexus_media` stream-type name helper for public media stream enums.
+- Add initial `nexus_screen` module skeleton with public capture facade and tests.
+- Add Windows DXGI Desktop Duplication primary-display capture for `nexus_screen` BGRA frames.
+- Add optional best-effort Windows cursor overlay for `nexus_screen` primary-display captures.
+- Add Linux X11 root-window primary-display capture for `nexus_screen` BGRA frames.
+- Add a `nexus_screen` example that captures one frame to a PPM image.
+- Add `nexus_screen` display enumeration and capture-by-display-id APIs.
+- Add `nexus_screen` PPM writer helper for BGRA `ScreenFrame` artifacts.
+- Add `nexus_screen` platform-neutral region capture and example `--region` support.
+- Add Windows visible-window enumeration and DXGI-backed visible-window capture for `nexus_screen`.
+- Consolidate `nexus_screen` BGRA frame cropping into a tested private helper.
+- Return Windows `nexus_screen` display names and visible-window titles as UTF-8 strings.
+- Add containing display ids to `nexus_screen` visible-window metadata.
+- Add process ids to `nexus_screen` visible-window metadata on Windows.
+- Add an active-window flag to `nexus_screen` visible-window metadata on Windows.
+- Add a `nexus_screen` pixel-format name helper for public screen frame formats.
+- Add Linux X11 visible-window enumeration and root-window-crop capture for `nexus_screen`.
+- Expand `nexus_common` with string, time, binary, platform, math, logging, and status utility headers.
+- Keep the public `nexus_common` platform header free of native platform SDK includes.
+- Add API style and iteration guides for future NexusKit phases.
+- Add Doxygen `///` API comments to all `nexus_core` and `nexus_common` public headers.
+- Add Doxygen `///` API comments to `nexus_media` and `nexus_screen` public headers.
+- Add Doxygen `///` API comments to `nexus_net`, `nexus_usb`, `nexus_hid`, and `nexus_log` public headers.
+- Add `TcpConnectOptions` with configurable connect timeout to `nexus_net`.
+- Add `TcpIoOptions` with configurable read/write timeouts to `nexus_net` `TcpClient`.
+- Add `stream_index` to `nexus_media` `MediaDecodeOptions` for targeting a specific stream.
+- Add decoder flush on EOF to `nexus_media` `MediaDecoder`; buffered frames are drained before the stream ends.
+- Add Linux Xrandr monitor enumeration to `nexus_screen`; `displays()` returns per-monitor outputs when libXrandr is available.
+- Document HID report id conventions and feature report behavior in `nexus_hid` and `nexus_usb` module docs.
+- Add `Event` and `Thread` cross-platform threading utilities to `nexus_common`.
+- Add `UsbHotplugMonitor` to `nexus_usb` for real-time USB device arrival/removal notifications via platform-specific backends.
+- Add `MediaEncoder` to `nexus_media` for encoding raw audio/video frames into compressed packets (AAC, PCM, MP3, H264).
+- Add `MediaMuxer` to `nexus_media` for writing encoded packets to container files (MP4, MPEG-PS).
+- Stabilize `MediaEncoder` input timestamp progression and document `MediaMuxer` stream time-base semantics.
+- Stabilize `UsbHotplugMonitor` callback validation, exception containment, and stop semantics.
+- Add `nexus_example_usb_hotplug` for USB device listing and USB-level hotplug watch mode.
+- Converge `UsbHotplugStorage` thread lifecycle to `nexus::common::Thread` for consistent error handling and thread safety.
+- Add `UdpReceiveOptions` for UDP receive timeout support.
+- Add `write_timeout` to `WebSocketClientOptions`.
+- Add `CLAUDE.md` AI collaboration guide, `docs/maintenance.md` developer reference, and `nexuskit-cpp-workflow` reusable skill.
+- Add H264 video encoder test and mixed AAC+H264 audio/video muxing interleaving test to `nexus_media`.
+- Add cross-platform multi-display window-to-display mapping validation test to `nexus_screen`.
+- Add `AsyncTcpClient` and `AsyncUdpSocket` to `nexus_net` for callback-driven async TCP/UDP via private Asio io_context workers.
+- Merge `AsyncTcpClient` into `TcpClient` — a single move-only RAII type now provides both sync (`connect`, `write_all`, `read_some`, `close`) and async (`async_connect`, `async_write_all`, `async_read_some`, `async_close`) operations, removing the separate `AsyncTcpClient` class.
+- Merge async HTTP methods into `HttpClient` — add `async_get`, `async_post`, `async_put`, `async_del`, and `async_close` to the existing copyable type, backed by a shared background worker thread.
+- Add async methods to `WebSocketClient` — `create`, `async_connect`, `async_send_text`, `async_receive_text`, and `async_close` operate on websocketpp's internal event-loop thread with `weak_ptr`-safe callbacks.
+- Add TLS support to `HttpClient` (https://) and `WebSocketClient` (wss://) via `NEXUS_NET_HAS_TLS` compile definition and OpenSSL linkage.
+- Merge `AsyncUdpSocket` into `UdpSocket` — a single move-only RAII type now provides both sync (`bind`, `send_to`, `receive_from`, `close`) and async (`async_bind`, `async_send_to`, `async_receive_from`, `async_close`) operations, removing the separate `AsyncUdpSocket` class.
+- Add `WebSocketServer` — move-only RAII type with sync/async listen, multi-client send/receive, connect/disconnect/message callbacks, client disconnect, and TLS support (wss://) via `NEXUS_NET_HAS_TLS`.
+- Add `follow_redirects` option to `HttpClientOptions` for automatic HTTP redirect (3xx) following, backed by httplib.
+- Add delay-load for OpenSSL DLLs on MSVC — `libssl-3-x64.dll` and `libcrypto-3-x64.dll` are loaded on first HTTPS/WSS call rather than at startup.
+- Add `nexus_audio` module — cross-platform audio input device enumeration and PCM int16 audio capture via WASAPI (Windows) and PulseAudio (Linux), with `NEXUS_ENABLE_AUDIO` option.
+- Add `nexus_camera` module — cross-platform USB camera device enumeration and video frame capture via libuvc (Windows) and V4L2 (Linux), with `NEXUS_ENABLE_CAMERA` option.
+- Add WASAPI volume and mute control to `nexus_audio` via `AudioCapturer::volume`/`set_volume`/`set_mute`.
+- Implement full PulseAudio capture backend for `nexus_audio` (device enumeration, default device, and PCM capture).
+- Add UVC/V4L2 camera controls to `nexus_camera` via `CameraCapturer::supported_controls`/`get_control`/`set_control`/`get_control_range` (Linux V4L2 backend).
+- Clean up 118 stale `build/phase*/` directories, 116 historical plan/spec files, and rewrite README for 0.1.0 release readiness.

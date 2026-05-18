@@ -1,0 +1,48 @@
+# Build outputs
+/build/
+/out/
+/target/
+/install/
+/dist/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+DartConfiguration.tcl
+Testing/
+_deps/
+
+# Visual Studio generated files
+.vs/
+*.user
+*.suo
+*.VC.db
+*.VC.VC.opendb
+*.opensdf
+*.sdf
+*.ipch
+
+# Compiled objects and binaries
+*.obj
+*.o
+*.lo
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+*.exe
+*.pdb
+*.ilk
+*.exp
+
+# Logs and temporary files
+.claude/
+*.log
+*.tmp
+*.bak
+*.swp
+Thumbs.db
+Desktop.ini
