@@ -76,6 +76,6 @@ Windows FFmpeg 源构建需要 MSYS2 UCRT64 + NASM。详见 `docs/build.md`。
 
 - 主开发分支：`main`
 - 当前阶段：Phase 9D — Media encoder/muxer timestamp semantics
-- 默认启用模块：nexus_core, nexus_log, nexus_common, nexus_net, nexus_screen
-- 可选模块：nexus_usb, nexus_hid, nexus_media（需 `NEXUS_ENABLE_*=ON`）
+- 默认启用模块：nexus_core, nexus_log, nexus_common, nexus_net
+- 可选模块：nexus_screen, nexus_usb, nexus_hid, nexus_media, nexus_audio, nexus_camera（需 `NEXUS_ENABLE_*=ON`）
 - 测试框架：Catch2
