@@ -142,7 +142,9 @@ if(TARGET nexus::media)
         )
     endif()
 
-    catch_discover_tests(nexus_media_tests)
+    catch_discover_tests(nexus_media_tests
+        DL_PATHS "$<TARGET_FILE_DIR:nexus_media_tests>"
+    )
 endif()
 
 if(TARGET nexus::screen)

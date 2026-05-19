@@ -42,6 +42,43 @@
         "NEXUS_BUILD_TESTS": "ON",
         "NEXUS_BUILD_EXAMPLES": "ON"
       }
+    },
+    {
+      "name": "windows-msvc-release",
+      "displayName": "Windows MSVC Release",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/windows-msvc-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/install/windows-msvc-release",
+        "NEXUS_BUILD_TESTS": "ON",
+        "NEXUS_BUILD_EXAMPLES": "ON"
+      }
+    },
+    {
+      "name": "windows-ninja-release",
+      "displayName": "Windows Ninja Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/windows-ninja-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/install/windows-ninja-release",
+        "NEXUS_BUILD_TESTS": "ON",
+        "NEXUS_BUILD_EXAMPLES": "ON"
+      }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/linux-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/install/linux-release",
+        "NEXUS_BUILD_TESTS": "ON",
+        "NEXUS_BUILD_EXAMPLES": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -56,6 +93,19 @@
     {
       "name": "linux-debug",
       "configurePreset": "linux-debug"
+    },
+    {
+      "name": "windows-msvc-release",
+      "configurePreset": "windows-msvc-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-ninja-release",
+      "configurePreset": "windows-ninja-release"
+    },
+    {
+      "name": "linux-release",
+      "configurePreset": "linux-release"
     }
   ],
   "testPresets": [
@@ -76,6 +126,28 @@
     {
       "name": "linux-debug",
       "configurePreset": "linux-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-msvc-release",
+      "configurePreset": "windows-msvc-release",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-ninja-release",
+      "configurePreset": "windows-ninja-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-release",
+      "configurePreset": "linux-release",
       "output": {
         "outputOnFailure": true
       }

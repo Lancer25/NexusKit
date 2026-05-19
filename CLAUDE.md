@@ -13,11 +13,19 @@ cmake --preset windows-msvc-debug
 # 构建
 cmake --build --preset windows-msvc-debug
 
+# Release 构建
+cmake --preset windows-msvc-release
+cmake --build --preset windows-msvc-release
+
 # 全量测试
 ctest --preset windows-msvc-debug
 
 # 运行单个测试套件
 ./build/windows-msvc-debug/bin/Debug/nexus_media_tests.exe
+
+# Release 测试
+ctest --preset windows-msvc-release
+./build/windows-msvc-release/bin/Release/nexus_media_tests.exe
 
 # 运行匹配的测试用例 (Catch2 通配符)
 ./build/windows-msvc-debug/bin/Debug/nexus_media_tests.exe "Media encoder*"

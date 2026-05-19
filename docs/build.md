@@ -5,21 +5,33 @@
 Use MSVC 2022:
 
 ```powershell
+# Debug
 cmake --preset windows-msvc-debug
 cmake --build --preset windows-msvc-debug
 ctest --preset windows-msvc-debug
+
+# Release
+cmake --preset windows-msvc-release
+cmake --build --preset windows-msvc-release
+ctest --preset windows-msvc-release
 ```
 
-Build output is written under `build/windows-msvc-debug`.
+Build output is written under `build/windows-msvc-debug` or `build/windows-msvc-release`.
 
 ## Linux
 
 Use the Linux preset from a shell with CMake and Ninja installed:
 
 ```bash
+# Debug
 cmake --preset linux-debug
 cmake --build --preset linux-debug
 ctest --preset linux-debug
+
+# Release
+cmake --preset linux-release
+cmake --build --preset linux-release
+ctest --preset linux-release
 ```
 
 ## Proxy
@@ -71,10 +83,21 @@ cmake -S . -B build/proxy -DNEXUS_GIT_PROXY=http://proxy.example.com:port
 Production dependency recipes are available for spdlog, nlohmann_json, pugixml, asio, cpp-httplib, websocketpp, hidapi, PortAudio, OpenSSL, and FFmpeg. Lightweight dependencies are included by future modules as needed. Heavy source builds are opt-in:
 
 ```powershell
+# Individual features
 cmake -S . -B build/hidapi -DNEXUS_BUILD_HIDAPI=ON
 cmake -S . -B build/portaudio -DNEXUS_BUILD_PORTAUDIO=ON
 cmake -S . -B build/openssl -DNEXUS_BUILD_OPENSSL=ON
 cmake -S . -B build/ffmpeg -DNEXUS_BUILD_FFMPEG=ON
+cmake -S . -B build/camera -DNEXUS_ENABLE_CAMERA=ON -DNEXUS_BUILD_LIBUVC=ON
+
+# Full build (all modules, FFmpeg from source, GPL x264, camera via libuvc)
+cmake --preset windows-msvc-release -B build/windows-msvc-release \
+  -DNEXUS_ENABLE_USB=ON \
+  -DNEXUS_ENABLE_HID=ON -DNEXUS_BUILD_HIDAPI=ON \
+  -DNEXUS_ENABLE_AUDIO=ON \
+  -DNEXUS_ENABLE_MEDIA=ON -DNEXUS_BUILD_FFMPEG=ON \
+  -DNEXUS_ENABLE_CAMERA=ON -DNEXUS_BUILD_LIBUVC=ON \
+  -DNEXUS_FFMPEG_ENABLE_GPL=ON
 ```
 
 OpenSSL source builds require Perl. On Windows they also require `nmake` from a Visual Studio developer prompt. FFmpeg source builds require NASM; on Windows they use MSYS2 bash with `make`, `nproc`, `nasm`, and a visible C compiler, and on Linux they require bash, make, pkg-config, and NASM.
@@ -110,8 +133,37 @@ FFmpeg::FFmpeg
 
 On Windows, the source-built FFmpeg DLLs and import libraries are installed under `build/<preset>/deps/ffmpeg/bin`.
 
+### FFmpeg GPL and x264
+
+Set `-DNEXUS_FFMPEG_ENABLE_GPL=ON` to build FFmpeg with `--enable-gpl --enable-libx264`. This enables the GPL-licensed x264 H.264 encoder as a source-built ExternalProject dependency. x264 compiles as a static library (`libx264.a`) via the MSYS2 MinGW toolchain (Windows) or native GCC (Linux). Requirements:
+
+- **Windows**: MSYS2 UCRT64 with `bash`, `make`, `nproc`, `nasm`, and `gcc`
+- **Linux**: `bash`, `make`, `pkg-config`, and `nasm`
+
+When GPL is enabled, x264 is built first, then FFmpeg's configure step picks up the x264 pkg-config path automatically.
+
+### Camera and libuvc
+
+`nexus_camera` (`NEXUS_ENABLE_CAMERA=ON`) requires libuvc on Windows. Set `NEXUS_BUILD_LIBUVC=ON` to build libuvc from source via FetchContent. libuvc in turn requires libusb, which is built via FetchContent with a custom CMake recipe (`cmake/deps/LibUSB.cmake`). On MSVC, POSIX headers (`sys/time.h`, `pthread.h`) are provided as compatibility shims under `build/<preset>/_deps/libuvc-compat`.
+
+No extra system packages are needed beyond the MSYS2 environment used for FFmpeg/x264.
+
 ## Install Layout
 
 Install prefixes default to `build/install/<preset>`.
 Runtime artifacts are produced under `build/<preset>/bin`.
 Libraries are produced under `build/<preset>/lib`.
+
+## Release Builds
+
+Release builds use `CMAKE_BUILD_TYPE=Release` with compiler optimizations enabled (`/O2` on MSVC, `-O3` on GCC/Clang) and `NDEBUG` defined. Debug symbols are stripped.
+
+All Debug presets have corresponding Release presets:
+
+| Platform | Debug Preset | Release Preset |
+|----------|-------------|----------------|
+| Windows MSVC | `windows-msvc-debug` | `windows-msvc-release` |
+| Windows Ninja | `windows-ninja-debug` | `windows-ninja-release` |
+| Linux Ninja | `linux-debug` | `linux-release` |
+
+For the MSVC multi-config generator, pass `--config Release` to build in Release mode. The build preset already includes `"configuration": "Release"`, so `cmake --build --preset windows-msvc-release` produces a Release binary without extra flags.

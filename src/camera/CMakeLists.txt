@@ -24,6 +24,13 @@ if(WIN32)
     # libuvc backend for Windows — requires externally provided uvc target
     if(TARGET uvc)
         target_link_libraries(nexus_camera PRIVATE uvc)
+        if(TARGET LibUSB::LibUSB)
+            target_link_libraries(nexus_camera PRIVATE LibUSB::LibUSB)
+        endif()
+        if(MSVC AND NEXUS_BUILD_LIBUVC)
+            target_include_directories(nexus_camera PRIVATE
+                "${CMAKE_BINARY_DIR}/_deps/libuvc-compat")
+        endif()
         target_sources(nexus_camera PRIVATE uvc_capturer.cpp)
         target_compile_definitions(nexus_camera PRIVATE NEXUS_CAMERA_HAS_LIBUVC)
     endif()

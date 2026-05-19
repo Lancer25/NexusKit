@@ -1710,6 +1710,11 @@ Result<int> detail::MediaMuxerStorage::add_stream(
             }
             temp_ctx->bit_rate = encoder_config.bit_rate;
 
+            if (temp_ctx->codec_id == AV_CODEC_ID_H264 ||
+                temp_ctx->codec_id == AV_CODEC_ID_MPEG4) {
+                temp_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+            }
+
             if (avcodec_open2(temp_ctx, codec, nullptr) >= 0) {
                 avcodec_parameters_from_context(stream->codecpar, temp_ctx);
             }

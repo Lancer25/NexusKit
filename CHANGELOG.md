@@ -68,3 +68,11 @@
 - Implement full PulseAudio capture backend for `nexus_audio` (device enumeration, default device, and PCM capture).
 - Add UVC/V4L2 camera controls to `nexus_camera` via `CameraCapturer::supported_controls`/`get_control`/`set_control`/`get_control_range` (Linux V4L2 backend).
 - Clean up 118 stale `build/phase*/` directories, 116 historical plan/spec files, and rewrite README for 0.1.0 release readiness.
+- Add Release build presets (`windows-msvc-release`, `windows-ninja-release`, `linux-release`) to CMakePresets.json.
+- Add x264 ExternalProject source build (`cmake/deps/X264.cmake`) with MSYS2 MinGW (Windows) and native GCC (Linux) support.
+- Add `NEXUS_FFMPEG_ENABLE_GPL=ON` option to link FFmpeg with `--enable-gpl --enable-libx264`; FFmpeg configure depends on x264 build completion.
+- Add libusb ExternalProject source build (`cmake/deps/LibUSB.cmake`) and FindLibUSB shim (`cmake/deps/FindLibUSB.cmake`) for libuvc integration on Windows.
+- Add libuvc FetchContent integration (`cmake/deps/Libuvc.cmake`) with MSVC POSIX compatibility shims (`sys/time.h`, `pthread.h`) for `nexus_camera`.
+- Add missing MinGW runtime DLLs (libiconv, libwinpthread, zlib, liblzma, libva, libva_win32, libbz2) to FFmpeg runtime dependency copy list.
+- Fix `MediaMuxer::add_stream` missing `AV_CODEC_FLAG_GLOBAL_HEADER` flag for H.264/MPEG4 codecs; muxed MP4 files now include proper extradata and pass probe verification.
+- Add `DL_PATHS` to `catch_discover_tests` for `nexus_media_tests` so test discovery resolves FFmpeg DLLs at build time.

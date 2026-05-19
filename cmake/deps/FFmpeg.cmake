@@ -4,7 +4,6 @@ include(CMakeParseArguments)
 include(ExternalProject)
 
 set(NEXUS_FFMPEG_INSTALL_DIR "${CMAKE_BINARY_DIR}/deps/ffmpeg" CACHE PATH "FFmpeg install prefix")
-set(NEXUS_FFMPEG_ENABLE_GPL OFF CACHE BOOL "Enable GPL components in the FFmpeg source build")
 set(NEXUS_FFMPEG_EXTRA_CONFIGURE_OPTIONS "" CACHE STRING "Extra options passed to FFmpeg configure")
 
 set(NEXUS_FFMPEG_COMPONENTS
@@ -45,7 +44,7 @@ function(nexus_define_ffmpeg_targets)
         endforeach()
 
         set(_NEXUS_MSYS2_UCRT_RUNTIME_DIR "C:/msys64/ucrt64/bin" CACHE PATH "MSYS2 UCRT64 runtime directory used by FFmpeg")
-        foreach(_NEXUS_FFMPEG_RUNTIME_DEP libiconv-2.dll libwinpthread-1.dll zlib1.dll)
+        foreach(_NEXUS_FFMPEG_RUNTIME_DEP libiconv-2.dll libwinpthread-1.dll zlib1.dll liblzma-5.dll libva.dll libva_win32.dll libbz2-1.dll)
             if(EXISTS "${_NEXUS_MSYS2_UCRT_RUNTIME_DIR}/${_NEXUS_FFMPEG_RUNTIME_DEP}")
                 list(APPEND _NEXUS_FFMPEG_RUNTIME_FILES "${_NEXUS_MSYS2_UCRT_RUNTIME_DIR}/${_NEXUS_FFMPEG_RUNTIME_DEP}")
             endif()
@@ -184,12 +183,21 @@ else()
 endif()
 
 set(NEXUS_FFMPEG_GPL_OPTION "")
+set(NEXUS_FFMPEG_GPL_PKG_CONFIG_PATH "")
 if(NEXUS_FFMPEG_ENABLE_GPL)
-    set(NEXUS_FFMPEG_GPL_OPTION "--enable-gpl")
+    set(NEXUS_FFMPEG_GPL_OPTION "--enable-gpl --enable-libx264")
+    if(NEXUS_X264_INSTALL_DIR)
+        if(WIN32)
+            file(TO_CMAKE_PATH "${NEXUS_X264_INSTALL_DIR}" _nexus_x264_install_cmake)
+            set(NEXUS_FFMPEG_GPL_PKG_CONFIG_PATH "PKG_CONFIG_PATH='${_nexus_x264_install_cmake}/lib/pkgconfig'")
+        else()
+            set(NEXUS_FFMPEG_GPL_PKG_CONFIG_PATH "PKG_CONFIG_PATH=${NEXUS_X264_INSTALL_DIR}/lib/pkgconfig")
+        endif()
+    endif()
 endif()
 
 set(NEXUS_FFMPEG_CONFIGURE_SCRIPT
-    "${NEXUS_FFMPEG_CONFIGURE_SCRIPT_PREFIX}cd '${NEXUS_FFMPEG_SOURCE_DIR_CMAKE}' && ${NEXUS_FFMPEG_COMMAND_ENV} ./configure --prefix='${NEXUS_FFMPEG_INSTALL_DIR_CMAKE}' --disable-doc --disable-programs --disable-debug --enable-shared ${NEXUS_FFMPEG_GPL_OPTION} ${NEXUS_FFMPEG_EXTRA_CONFIGURE_OPTIONS}"
+    "${NEXUS_FFMPEG_CONFIGURE_SCRIPT_PREFIX}cd '${NEXUS_FFMPEG_SOURCE_DIR_CMAKE}' && ${NEXUS_FFMPEG_COMMAND_ENV} ${NEXUS_FFMPEG_GPL_PKG_CONFIG_PATH} ./configure --prefix='${NEXUS_FFMPEG_INSTALL_DIR_CMAKE}' --disable-doc --disable-programs --disable-debug --enable-shared ${NEXUS_FFMPEG_GPL_OPTION} ${NEXUS_FFMPEG_EXTRA_CONFIGURE_OPTIONS}"
 )
 
 ExternalProject_Add(
@@ -203,5 +211,10 @@ ExternalProject_Add(
     BUILD_COMMAND ${NEXUS_FFMPEG_MAKE_COMMAND}
     INSTALL_COMMAND ${NEXUS_FFMPEG_INSTALL_COMMAND}
 )
+
+# Make FFmpeg configure depend on x264 when GPL is enabled
+if(NEXUS_FFMPEG_ENABLE_GPL AND TARGET nexus_x264_source)
+    ExternalProject_Add_StepDependencies(nexus_ffmpeg_source configure nexus_x264_source)
+endif()
 
 nexus_define_ffmpeg_targets(SOURCE_TARGET nexus_ffmpeg_source)
