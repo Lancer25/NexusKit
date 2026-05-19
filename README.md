@@ -22,7 +22,7 @@ NexusKit is approaching its 0.1.0 milestone. All core modules are implemented wi
 - CMake 3.24+
 - C++17 compiler (MSVC 2022, GCC 9+, Clang 10+)
 - Git (for FetchContent dependency downloads)
-- Optional: OpenSSL (for TLS support), FFmpeg (for media module), MSYS2 UCRT64 + NASM (for FFmpeg from source on Windows)
+- Optional (for source-built dependencies): MSYS2 UCRT64 + NASM (FFmpeg, x264 on Windows), OpenSSL (TLS support)
 
 ## Quick Start
 
@@ -41,7 +41,18 @@ ctest --preset windows-msvc-debug
 Optional modules are enabled via CMake variables:
 
 ```powershell
-cmake --preset windows-msvc-debug -DNEXUS_ENABLE_MEDIA=ON -DNEXUS_ENABLE_USB=ON
+# Enable specific modules
+cmake --preset windows-msvc-debug -DNEXUS_ENABLE_MEDIA=ON -DNEXUS_ENABLE_SCREEN=ON
+
+# Full build with all modules and source-built dependencies
+cmake --preset windows-msvc-release -B build/windows-msvc-release \
+  -DNEXUS_ENABLE_SCREEN=ON \
+  -DNEXUS_ENABLE_USB=ON \
+  -DNEXUS_ENABLE_HID=ON -DNEXUS_BUILD_HIDAPI=ON \
+  -DNEXUS_ENABLE_AUDIO=ON \
+  -DNEXUS_ENABLE_MEDIA=ON -DNEXUS_BUILD_FFMPEG=ON \
+  -DNEXUS_ENABLE_CAMERA=ON -DNEXUS_BUILD_LIBUVC=ON \
+  -DNEXUS_FFMPEG_ENABLE_GPL=ON
 ```
 
 ## Development Guides
@@ -59,7 +70,7 @@ cmake --preset windows-msvc-debug -DNEXUS_ENABLE_MEDIA=ON -DNEXUS_ENABLE_USB=ON
 | `nexus_log` | Diagnostic logging API (spdlog backend, headers private) | ON |
 | `nexus_common` | Strings, time, binary I/O, threading (`Thread`, `Event`), JSON, XML, platform helpers | ON |
 | `nexus_net` | HTTP client (sync/async, TLS), TCP client, UDP socket, WebSocket client/server (sync/async, TLS) | ON |
-| `nexus_screen` | Display enumeration, screen/window/region capture (Windows DXGI, Linux X11/Xrandr) | ON |
+| `nexus_screen` | Display enumeration, screen/window/region capture (Windows DXGI, Linux X11/Xrandr) | OFF |
 | `nexus_usb` | USB device enumeration, HID report I/O facade, USB hotplug monitoring | OFF |
 | `nexus_hid` | HID device enumeration and feature-report documentation | OFF |
 | `nexus_media` | Media format probing, audio/video decoding, encoding (AAC/H264), muxing (MP4/MPEG-PS) | OFF |
