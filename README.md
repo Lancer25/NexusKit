@@ -26,25 +26,25 @@ All ten modules are implemented with tests, documentation, and examples. The ful
 
 ## Quick Start
 
+### Default modules (no extra dependencies)
+
 ```powershell
-# Configure
+# Windows (MSVC)
 cmake --preset windows-msvc-debug
-
-# Build
 cmake --build --preset windows-msvc-debug
-
-# Run all tests
 ctest --preset windows-msvc-debug
+
+# Linux
+cmake --preset linux-debug
+cmake --build --preset linux-debug
+ctest --preset linux-debug
 ```
 
+This builds `nexus_core`, `nexus_log`, `nexus_common`, and `nexus_net` — no system packages needed beyond CMake and a C++17 compiler.
 
-Optional modules are enabled via CMake variables:
+### All modules (requires MSYS2 UCRT64 on Windows)
 
 ```powershell
-# Enable specific modules
-cmake --preset windows-msvc-debug -DNEXUS_ENABLE_MEDIA=ON -DNEXUS_ENABLE_SCREEN=ON
-
-# Full build with all modules and source-built dependencies
 cmake --preset windows-msvc-release -B build/windows-msvc-release \
   -DNEXUS_ENABLE_SCREEN=ON \
   -DNEXUS_ENABLE_USB=ON \
@@ -53,7 +53,11 @@ cmake --preset windows-msvc-release -B build/windows-msvc-release \
   -DNEXUS_ENABLE_MEDIA=ON -DNEXUS_BUILD_FFMPEG=ON \
   -DNEXUS_ENABLE_CAMERA=ON -DNEXUS_BUILD_LIBUVC=ON \
   -DNEXUS_FFMPEG_ENABLE_GPL=ON
+cmake --build build/windows-msvc-release --config Release
+ctest --test-dir build/windows-msvc-release -C Release
 ```
+
+See [Build Guide](docs/build.md) for detailed dependency requirements and Linux instructions.
 
 ## Development Guides
 
