@@ -6,7 +6,7 @@ NexusKit provides reusable, RAII-style modules with public headers free of platf
 
 ## Status
 
-NexusKit is approaching its 0.1.0 milestone. All core modules are implemented with tests, documentation, and examples. The library is under active development on `main`.
+All ten modules are implemented with tests, documentation, and examples. The full build (including optional FFmpeg, x264, camera, and audio modules) passes 245 tests on Windows MSVC Release.
 
 ## Features
 
