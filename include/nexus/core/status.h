@@ -28,9 +28,7 @@ enum class StatusCode {
 /// An ok Status has code `kOk` and an empty message.  An error Status has a
 /// non-ok code and a diagnostic message.
 ///
-/// Status is move-only in practice because copy is disallowed — the implicit
-/// copy constructor is deleted due to the explicitly provided constructor.
-/// Pass by const reference or move.
+/// Status is copyable and movable.  Pass by value, const reference, or move.
 class Status {
 public:
     Status() = default;

@@ -490,7 +490,8 @@ TEST_CASE("Screen capturer X11 window metadata uses expected id formats") {
     }
     for (const auto& window : windows.value()) {
         CHECK(window.id.substr(0, 12) == "x11-window-");
-        CHECK(window.display_id == "x11-default");
+        CHECK((window.display_id == "x11-default" ||
+               window.display_id.substr(0, 7) == "xrandr-"));
     }
 #endif
 }

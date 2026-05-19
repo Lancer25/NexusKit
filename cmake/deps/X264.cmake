@@ -64,7 +64,7 @@ endif()
 ExternalProject_Add(
     nexus_x264_source
     GIT_REPOSITORY https://code.videolan.org/videolan/x264.git
-    GIT_TAG        master
+    GIT_TAG        0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee
     GIT_CONFIG     ${NEXUS_GIT_EFFECTIVE_CONFIG_ARGS}
     PREFIX         "${CMAKE_BINARY_DIR}/_deps/x264"
     CONFIGURE_COMMAND ${NEXUS_X264_CONFIGURE_COMMAND}

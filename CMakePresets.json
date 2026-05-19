@@ -101,7 +101,8 @@
     },
     {
       "name": "windows-ninja-release",
-      "configurePreset": "windows-ninja-release"
+      "configurePreset": "windows-ninja-release",
+      "configuration": "Release"
     },
     {
       "name": "linux-release",
@@ -141,6 +142,7 @@
     {
       "name": "windows-ninja-release",
       "configurePreset": "windows-ninja-release",
+      "configuration": "Release",
       "output": {
         "outputOnFailure": true
       }

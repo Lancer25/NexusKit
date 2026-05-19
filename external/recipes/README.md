@@ -16,6 +16,9 @@ NexusKit keeps dependency decisions centralized. CMake recipes live under `cmake
 | PortAudio | v19.7.0 | `147dd722548358763a8b649b3e4b41dfffbcfbb6` | `cmake/deps/PortAudio.cmake` | Audio I/O |
 | OpenSSL | 3.3.1 | `243b18a4c9e2865caf7901ec4506e899cfc34d7c` | `cmake/deps/OpenSSLSource.cmake` | Crypto and TLS |
 | FFmpeg | n7.0.1 | `47f70eda3e2ff003a787e512afd07b0c266f7a70` | `cmake/deps/FFmpeg.cmake` | Media processing |
+| x264 | master | `0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee` | `cmake/deps/X264.cmake` | H.264 encoder (GPL) |
+| libusb | v1.0.27 | `af1124d30e3361800f42b7e6704f0c03720c9d3c` | `cmake/deps/LibUSB.cmake` | USB device access |
+| libuvc | v0.0.7 | `ad202475430f72bad6f45ea3865f9ab93e29ec2e` | `cmake/deps/Libuvc.cmake` | UVC camera access |
 | Catch2 | v3.5.4 | `abb467ecd60fae9a727afca033c1eb5d20af2c12` | `cmake/deps/Catch2.cmake` | Unit tests |
 
 ## Rules

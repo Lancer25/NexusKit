@@ -38,8 +38,12 @@ _deps/
 *.ilk
 *.exp
 
+# Claude Code — track project settings, keep per-user data local
+.claude/settings.local.json
+.claude/memory/
+.claude/projects/
+
 # Logs and temporary files
-.claude/
 *.log
 *.tmp
 *.bak

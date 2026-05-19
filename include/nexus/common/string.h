@@ -1,5 +1,7 @@
 #pragma once
 
+#include <nexus/common/export.h>
+
 #include <algorithm>
 #include <cctype>
 #include <string>
@@ -64,25 +66,25 @@ inline std::string_view trim(std::string_view value) {
 }
 
 /// Case-insensitive comparison of two string views.
-bool equals_ignore_case(std::string_view a, std::string_view b);
+NEXUS_COMMON_API bool equals_ignore_case(std::string_view a, std::string_view b);
 
 /// Splits `value` at each occurrence of `delimiter`.
-std::vector<std::string> split(std::string_view value, char delimiter);
+NEXUS_COMMON_API std::vector<std::string> split(std::string_view value, char delimiter);
 
 /// Converts a wide string to a UTF-8 encoded narrow string.
 ///
 /// On Windows uses `WideCharToMultiByte`; on POSIX uses `wcsrtombs`.
-std::string wide_to_utf8(std::wstring_view value);
+NEXUS_COMMON_API std::string wide_to_utf8(std::wstring_view value);
 
 /// Converts a UTF-8 encoded narrow string to a wide string.
 ///
 /// On Windows uses `MultiByteToWideChar`; on POSIX uses `mbsrtowcs`.
-std::wstring utf8_to_wide(std::string_view value);
+NEXUS_COMMON_API std::wstring utf8_to_wide(std::string_view value);
 
 /// Encodes `value` with RFC 3986 percent-encoding.
-std::string percent_encode(std::string_view value);
+NEXUS_COMMON_API std::string percent_encode(std::string_view value);
 
 /// Decodes an RFC 3986 percent-encoded string.
-std::string percent_decode(std::string_view value);
+NEXUS_COMMON_API std::string percent_decode(std::string_view value);
 
 } // namespace nexus::common

@@ -10,16 +10,16 @@ Recipes are intentionally opt-in. The top-level build only activates heavyweight
 
 ## Modules
 
-- Current Phase 1: `nexus_core` is the lowest-level module and depends only on C++17 and minimal platform SDKs.
-- Current Phase 3: `nexus_log` provides logging and depends on `nexus_core` plus spdlog as a private backend.
-- Current Phase 3: `nexus_common` provides shared utility components including JSON, XML, string manipulation, time helpers, binary I/O, platform abstractions, math helpers, diagnostic logging, and status factories. It depends on `nexus_core`, `nexus_log`, and private backend libraries.
-- Current Phase 4: `nexus_net` provides networking components. It currently includes HTTP, synchronous TCP, synchronous UDP, and synchronous WebSocket utilities, with diagnostics routed through `nexus_log`.
-- Current Phase 5: `nexus_usb` provides USB device discovery, HID-backed report I/O facade APIs, and USB-level hotplug monitoring. Future USB work can expand toward UVC and USB audio discovery; HID-level hotplug is not planned.
-- Current Phase 5: `nexus_hid` provides HID device enumeration through a private hidapi backend.
-- Current Phase 6: `nexus_media` provides FFmpeg-backed media processing including backend discovery, metadata probing, packet reading, audio/video decoding, audio resampling and sample-format conversion, video pixel-format conversion (RGB24, RGBA, BGR24, BGRA), lightweight WAV and PPM frame writers, and stream-type and format-name helpers.
-- Current Phase 7: `nexus_screen` provides desktop and window capture through Windows DXGI Desktop Duplication and Linux X11. It supports display enumeration, primary/display-id/region capture, visible-window enumeration and capture with metadata (containing display, process id, active flag) on both Windows and Linux X11, optional cursor overlay on Windows, a PPM writer for BGRA frames, and pixel-format name helpers.
-- `nexus_audio`: audio input device enumeration and PCM int16 capture via WASAPI (Windows) or PulseAudio (Linux). The backend is private; the public API exposes `AudioCapturer` with callback-driven frame delivery on an internal capture thread.
-- `nexus_camera`: USB camera device enumeration and video frame capture via libuvc (Windows) or V4L2 (Linux). The backend is private; the public API exposes `CameraCapturer` with callback-driven frame delivery on an internal capture thread.
+- `nexus_core`: The lowest-level module — `StatusCode`, `Status`, and `Result<T>` types. Depends only on C++17 and minimal platform SDKs.
+- `nexus_log`: Logging facade with spdlog as a private backend. Depends on `nexus_core`.
+- `nexus_common`: Shared utilities — JSON, XML, string manipulation, time helpers, binary I/O, platform abstractions, math helpers, diagnostic logging, and threading primitives (`Thread`, `Event`). Depends on `nexus_core`, `nexus_log`, and private backend libraries (nlohmann_json, pugixml).
+- `nexus_net`: Networking — HTTP client/server, TCP, UDP, WebSocket (client and server), with sync/async methods and optional TLS via OpenSSL. Depends on `nexus_log`, with private backends (cpp-httplib, Asio, websocketpp).
+- `nexus_usb`: USB device discovery, HID-backed report I/O, and USB-level hotplug monitoring. Depends on `nexus_hid` and `nexus_log`.
+- `nexus_hid`: HID device enumeration through a private hidapi backend. Depends on `nexus_log`.
+- `nexus_media`: FFmpeg-backed media processing — backend discovery, metadata probing, packet reading, audio/video decoding, resampling/format conversion, encoding, container muxing, and lightweight WAV/PPM writers. Depends on `nexus_log`.
+- `nexus_screen`: Desktop and window capture — Windows DXGI Desktop Duplication and Linux X11, with display enumeration, region/window capture, cursor overlay, and pixel-format helpers. Depends on `nexus_log`.
+- `nexus_audio`: Audio input device enumeration and PCM int16 capture via WASAPI (Windows) or PulseAudio (Linux), with volume/mute control. Depends on `nexus_log` and `nexus_common`.
+- `nexus_camera`: USB camera device enumeration and video frame capture via libuvc (Windows) or V4L2 (Linux), with camera control support. Depends on `nexus_log` and `nexus_common`.
 
 ## Rules
 

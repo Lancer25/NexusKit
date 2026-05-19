@@ -1,0 +1,10 @@
+{
+  "extraKnownMarketplaces": {
+    "obra-superpowers": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/obra/superpowers-marketplace.git"
+      }
+    }
+  }
+}

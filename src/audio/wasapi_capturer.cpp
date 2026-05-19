@@ -11,7 +11,9 @@
 #include <utility>
 #include <vector>
 
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 #include <audioclient.h>
 #include <endpointvolume.h>
@@ -34,24 +36,6 @@ namespace detail {
 
 namespace {
 
-std::string wide_to_utf8(const wchar_t* wstr) {
-    if (!wstr || !*wstr) return {};
-    int len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, nullptr, 0, nullptr, nullptr);
-    if (len <= 0) return {};
-    std::string result(len - 1, '\0');
-    WideCharToMultiByte(CP_UTF8, 0, wstr, -1, result.data(), len, nullptr, nullptr);
-    return result;
-}
-
-std::wstring utf8_to_wide(const std::string& str) {
-    if (str.empty()) return {};
-    int len = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
-    if (len <= 0) return {};
-    std::wstring result(len - 1, L'\0');
-    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, result.data(), len);
-    return result;
-}
-
 Status hresult_to_status(HRESULT hr, const char* operation) {
     std::string msg = std::string(operation) + " failed: 0x";
     char hex[16];
@@ -73,7 +57,7 @@ AudioDevice device_info(IMMDevice* dev) {
 
     LPWSTR wid = nullptr;
     if (SUCCEEDED(dev->GetId(&wid)) && wid) {
-        info.id = wide_to_utf8(wid);
+        info.id = nexus::common::wide_to_utf8(wid);
         CoTaskMemFree(wid);
     }
 
@@ -82,7 +66,7 @@ AudioDevice device_info(IMMDevice* dev) {
         PROPVARIANT v;
         PropVariantInit(&v);
         if (SUCCEEDED(props->GetValue(PKEY_Device_FriendlyName, &v)) && v.pwszVal) {
-            info.name = wide_to_utf8(v.pwszVal);
+            info.name = nexus::common::wide_to_utf8(v.pwszVal);
         }
         PropVariantClear(&v);
         props->Release();
@@ -147,7 +131,7 @@ public:
         // Get target device
         IMMDevice* device = nullptr;
         if (!options.device_id.empty()) {
-            auto wid = utf8_to_wide(options.device_id);
+            auto wid = nexus::common::utf8_to_wide(options.device_id);
             hr = enumerator->GetDevice(wid.c_str(), &device);
             if (FAILED(hr)) {
                 enumerator->Release();
@@ -426,7 +410,7 @@ IMMDevice* open_audio_device(IMMDeviceEnumerator* enumerator,
         return dev;
     }
     IMMDevice* dev = nullptr;
-    HRESULT hr = enumerator->GetDevice(utf8_to_wide(device_id).c_str(), &dev);
+    HRESULT hr = enumerator->GetDevice(nexus::common::utf8_to_wide(device_id).c_str(), &dev);
     if (FAILED(hr)) return nullptr;
     return dev;
 }
