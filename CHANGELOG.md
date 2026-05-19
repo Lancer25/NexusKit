@@ -76,3 +76,10 @@
 - Add missing MinGW runtime DLLs (libiconv, libwinpthread, zlib, liblzma, libva, libva_win32, libbz2) to FFmpeg runtime dependency copy list.
 - Fix `MediaMuxer::add_stream` missing `AV_CODEC_FLAG_GLOBAL_HEADER` flag for H.264/MPEG4 codecs; muxed MP4 files now include proper extradata and pass probe verification.
 - Add `DL_PATHS` to `catch_discover_tests` for `nexus_media_tests` so test discovery resolves FFmpeg DLLs at build time.
+- Add `TcpListener` to `nexus_net` — move-only RAII TCP listener with async accept via background worker, delivering connected `TcpClient` instances through callback.
+- Add `AudioPlayer` to `nexus_audio` — PCM int16 audio playback via WASAPI `IAudioRenderClient` (Windows) and PulseAudio `pa_simple` (Linux).
+- Add `remux_file` to `nexus_media` — FFmpeg-backed stream-copy remux that copies all streams from one container to another without decoding/encoding.
+- Add `CameraCapturer::default_device` — static helper returning the first available camera device.
+- Fix USB argument validation ordering so empty reports and zero max_bytes consistently return `kInvalidArgument` regardless of device open state.
+- Add bounds checking to `nexus_common` binary I/O helpers and document Thread class API.
+- Clean up Pugixml CMake dependency recipe and remove unused fetch knobs.

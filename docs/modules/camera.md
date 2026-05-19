@@ -11,6 +11,7 @@
 - `nexus::camera::CameraCapturer`: move-only RAII camera capturer with static enumeration helpers.
 - `CameraCapturer::create`: validates options and returns `nexus::Result<CameraCapturer>`.
 - `CameraCapturer::enumerate_devices`: returns a list of available camera devices.
+- `CameraCapturer::default_device`: returns the first available camera device (equivalent to `enumerate_devices()` and returning the first entry).
 - `CameraCapturer::start`: begins capturing, delivering `Result<CameraFrame>` via callback on an internal capture thread.
 - `CameraCapturer::stop`: stops capturing (idempotent).
 - `CameraCapturer::is_capturing`: true while actively capturing frames.

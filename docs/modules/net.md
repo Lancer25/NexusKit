@@ -30,10 +30,12 @@
 - `nexus::net::WebSocketClientId`: unique numeric identifier for a connected WebSocket client.
 - `nexus::net::WebSocketServerOptions`: server timeout configuration including close and write timeouts.
 - `nexus::net::WebSocketServer`: move-only RAII WebSocket server with sync/async listen, per-client send, connect/disconnect/message callbacks, client disconnect, and close operations.
+- `nexus::net::TcpListenOptions`: TCP listener configuration (reuse_address, backlog).
+- `nexus::net::TcpListener`: move-only RAII TCP listener that binds to an endpoint and accepts incoming connections via async callback.
 
 ## Scope
 
-The HTTP client supports `http://` and `https://` (when built with OpenSSL) base URLs without a path, GET, POST, PUT, DELETE, request headers, response headers, and query path construction. All I/O types provide both sync (blocking) and async (callback-driven via private Asio io_context workers) operations: `TcpClient`, `UdpSocket`, `HttpClient`, `WebSocketClient`, and `WebSocketServer`. WebSocket supports `ws://` and `wss://` (when built with OpenSSL). The `WebSocketServer` provides multi-client listen/accept, per-client send, and connection lifecycle callbacks. HTTP redirects are supported via `HttpClientOptions::follow_redirects`. HTTP streaming is planned follow-up work.
+The HTTP client supports `http://` and `https://` (when built with OpenSSL) base URLs without a path, GET, POST, PUT, DELETE, request headers, response headers, and query path construction. All I/O types provide both sync (blocking) and async (callback-driven via private Asio io_context workers) operations: `TcpClient`, `UdpSocket`, `HttpClient`, `WebSocketClient`, and `WebSocketServer`. `TcpListener` provides asynchronous accept via background worker thread, delivering connected `TcpClient` instances through an `AcceptHandler` callback. WebSocket supports `ws://` and `wss://` (when built with OpenSSL). The `WebSocketServer` provides multi-client listen/accept, per-client send, and connection lifecycle callbacks. HTTP redirects are supported via `HttpClientOptions::follow_redirects`. HTTP streaming is planned follow-up work.
 
 ## Backend
 
@@ -63,3 +65,7 @@ HTTP requests, TCP connection/read/write/close operations, UDP bind/send/receive
 - Async TCP/UDP connect/bind and receive timeouts return `StatusCode::kUnavailable`.
 - Async TCP/UDP send buffer lifetime: callers own data until the write callback fires.
 - HTTP status codes such as 404 are returned as successful `HttpResponse` values because the request completed at the protocol level.
+- TCP listener create with empty host returns `StatusCode::kInvalidArgument`.
+- TCP listener create with bind/address-resolution failure returns `StatusCode::kUnavailable`.
+- TCP listener accept on a closed listener returns `StatusCode::kFailedPrecondition`.
+- TCP listener accept when the acceptor is closed returns `StatusCode::kUnavailable`.

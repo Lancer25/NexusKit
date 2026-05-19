@@ -81,4 +81,4 @@ Windows FFmpeg 和 x264 源构建需要 MSYS2 UCRT64 + NASM。详见 `docs/build
 - 测试框架：Catch2
 - 默认启用模块：nexus_core, nexus_log, nexus_common, nexus_net
 - 可选模块：nexus_screen, nexus_usb, nexus_hid, nexus_media, nexus_audio, nexus_camera（需 `NEXUS_ENABLE_*=ON`）
-- 全部模块 Release 构建 + GPL x264 已验证：245/245 测试通过
+- 全部模块 Release 构建 + GPL x264 已验证：262/262 测试通过

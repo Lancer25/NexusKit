@@ -25,10 +25,11 @@
 - `nexus::media::audio_sample_format_name` and `video_pixel_format_name`: return canonical `MediaFrame::format_name` strings for public format enums.
 - `nexus::media::write_wav_file`: write packed `s16` audio frames to a PCM WAV file.
 - `nexus::media::write_ppm_file`: write RGB-family video frames to a binary PPM image.
+- `nexus::media::remux_file`: copy all streams from one container to another without decoding/encoding (stream-copy remux, equivalent to `ffmpeg -c copy`).
 
 ## Scope
 
-The current module does not provide high-level remux workflows that copy streams directly from one container to another, and it does not capture media. It gives applications and tests a stable way to detect whether this NexusKit build was linked with FFmpeg targets, request lightweight file metadata, read encoded packets, decode audio/video frames, convert decoded audio/video frames to supported formats, encode raw frames to compressed packets, mux encoded packets to container files, and write simple inspection artifacts.
+The module does not capture media. It gives applications and tests a stable way to detect whether this NexusKit build was linked with FFmpeg targets, request lightweight file metadata, read encoded packets, decode audio/video frames, convert decoded audio/video frames to supported formats, encode raw frames to compressed packets, mux encoded packets to container files, remux container streams without re-encoding, and write simple inspection artifacts.
 
 Decoded audio frames include sample rate, channel count, FFmpeg sample format name, bytes per sample, and whether the decoded frame is planar. Packed audio is copied as a single interleaved byte buffer. Planar audio is copied channel-by-channel into one contiguous byte buffer.
 
@@ -117,6 +118,9 @@ Supported audio encoders include `aac` (requires `fltp` in FFmpeg 7.x), `mp2` (M
 - Operations on closed media encoders return `StatusCode::kFailedPrecondition`.  End of encoded packet stream returns `StatusCode::kNotFound`.
 - Operations on closed media muxers return `StatusCode::kFailedPrecondition`.  Invalid stream index returns `StatusCode::kInvalidArgument`.
 - Adding a stream after the first write returns `StatusCode::kFailedPrecondition`.
+- `remux_file` with an empty source or dest path returns `StatusCode::kInvalidArgument`.
+- `remux_file` with a missing source returns `StatusCode::kNotFound`.
+- `remux_file` when FFmpeg is unavailable or the operation fails returns `StatusCode::kUnavailable`.
 
 All public types and functions are annotated with Doxygen `///` comments following `docs/api-style.md`.
 

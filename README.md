@@ -6,7 +6,7 @@ NexusKit provides reusable, RAII-style modules with public headers free of platf
 
 ## Status
 
-All ten modules are implemented with tests, documentation, and examples. The full build (including optional FFmpeg, x264, camera, and audio modules) passes 245 tests on Windows MSVC Release.
+All ten modules are implemented with tests, documentation, and examples. The full build (including optional FFmpeg + GPL x264, camera/libuvc, and audio modules) passes 262 tests on Windows MSVC Release.
 
 ## Features
 
@@ -73,13 +73,13 @@ See [Build Guide](docs/build.md) for detailed dependency requirements and Linux 
 | `nexus_core` | Status/result types, versioning, and platform detection | ON |
 | `nexus_log` | Diagnostic logging API (spdlog backend, headers private) | ON |
 | `nexus_common` | Strings, time, binary I/O, threading (`Thread`, `Event`), JSON, XML, platform helpers | ON |
-| `nexus_net` | HTTP client (sync/async, TLS), TCP client, UDP socket, WebSocket client/server (sync/async, TLS) | ON |
+| `nexus_net` | HTTP/HTTPS client (sync/async, TLS), TCP client, TCP listener, UDP socket, WebSocket client/server (sync/async, TLS) | ON |
 | `nexus_screen` | Display enumeration, screen/window/region capture (Windows DXGI, Linux X11/Xrandr) | OFF |
 | `nexus_usb` | USB device enumeration, HID report I/O facade, USB hotplug monitoring | OFF |
 | `nexus_hid` | HID device enumeration and feature-report documentation | OFF |
-| `nexus_media` | Media format probing, audio/video decoding, encoding (AAC/H264), muxing (MP4/MPEG-PS) | OFF |
-| `nexus_audio` | Audio input device enumeration and PCM int16 capture (WASAPI/PulseAudio) | OFF |
-| `nexus_camera` | USB camera device enumeration and video frame capture (libuvc/V4L2) | OFF |
+| `nexus_media` | Media format probing, audio/video decoding, encoding (AAC/H264), muxing (MP4/MPEG-PS), stream-copy remux | OFF |
+| `nexus_audio` | Audio input/output device enumeration, PCM int16 capture and playback (WASAPI/PulseAudio), volume/mute control | OFF |
+| `nexus_camera` | USB camera device enumeration, default device selection, and video frame capture (libuvc/V4L2) | OFF |
 
 ## Examples
 
