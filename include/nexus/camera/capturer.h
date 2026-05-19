@@ -47,6 +47,12 @@ public:
     /// @retval kFailedPrecondition when no backend is available.
     static Result<std::vector<CameraDevice>> enumerate_devices();
 
+    /// Returns the default camera device.
+    ///
+    /// Equivalent to `enumerate_devices()` and returning the first entry.
+    /// @retval kNotFound when no camera devices are found.
+    static Result<CameraDevice> default_device();
+
     /// Starts camera capture.  Frames are delivered via `handler` on an
     /// internal capture thread.  Must not already be capturing.
     ///

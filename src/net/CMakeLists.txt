@@ -5,6 +5,7 @@ include(Websocketpp)
 add_library(nexus_net ${NEXUS_LIBRARY_TYPE}
     http.cpp
     tcp.cpp
+    tcp_listener.cpp
     udp.cpp
     websocket_client.cpp
     websocket_server.cpp

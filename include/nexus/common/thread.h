@@ -71,6 +71,9 @@ public:
                std::chrono::milliseconds interval = {});
 
     /// Synchronous stop; signals stop and joins the thread.
+    ///
+    /// Must not be called from within the thread callback — that would cause
+    /// `std::thread::join` to deadlock waiting on itself.
     void stop();
     /// Asynchronous stop request; sets the stop flag without joining.
     void request_stop();

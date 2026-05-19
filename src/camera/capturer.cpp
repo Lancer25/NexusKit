@@ -43,6 +43,18 @@ Result<std::vector<CameraDevice>> CameraCapturer::enumerate_devices() {
 #endif
 }
 
+Result<CameraDevice> CameraCapturer::default_device() {
+    auto devices = enumerate_devices();
+    if (!devices.ok()) {
+        return devices.status();
+    }
+    const auto& list = devices.value();
+    if (list.empty()) {
+        return Status(StatusCode::kNotFound, "No camera devices found");
+    }
+    return list[0];
+}
+
 Status CameraCapturer::start(DataHandler handler) {
     if (!storage_) {
         return Status(StatusCode::kFailedPrecondition, "Capturer is closed");

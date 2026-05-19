@@ -1,5 +1,6 @@
 add_library(nexus_audio ${NEXUS_LIBRARY_TYPE}
     capturer.cpp
+    player.cpp
 )
 
 add_library(nexus::audio ALIAS nexus_audio)
@@ -22,7 +23,10 @@ target_link_libraries(nexus_audio
 
 if(WIN32)
     target_link_libraries(nexus_audio PRIVATE ole32.lib)
-    target_sources(nexus_audio PRIVATE wasapi_capturer.cpp)
+    target_sources(nexus_audio PRIVATE
+        wasapi_capturer.cpp
+        wasapi_player.cpp
+    )
     target_compile_definitions(nexus_audio PRIVATE NEXUS_AUDIO_HAS_WASAPI)
 elseif(UNIX)
     find_package(PkgConfig QUIET)
@@ -31,7 +35,10 @@ elseif(UNIX)
     endif()
     if(TARGET PkgConfig::PULSEAUDIO)
         target_link_libraries(nexus_audio PRIVATE PkgConfig::PULSEAUDIO)
-        target_sources(nexus_audio PRIVATE pulse_capturer.cpp)
+        target_sources(nexus_audio PRIVATE
+            pulse_capturer.cpp
+            pulse_player.cpp
+        )
         target_compile_definitions(nexus_audio PRIVATE NEXUS_AUDIO_HAS_PULSE)
     endif()
 endif()

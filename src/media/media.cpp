@@ -1070,6 +1070,136 @@ Status write_ppm_file(
     return Status::ok_status();
 }
 
+Status remux_file(
+    const std::filesystem::path& source,
+    const std::filesystem::path& dest) {
+    const std::string operation = "Media remux";
+    nexus::common::diagnostic_log(
+        log::Level::debug,
+        operation + " src=" + path_string(source) + " dst=" + path_string(dest));
+
+    if (source.empty()) {
+        return Status::invalid_argument("remux source path cannot be empty");
+    }
+    if (dest.empty()) {
+        return Status::invalid_argument("remux dest path cannot be empty");
+    }
+    if (!std::filesystem::exists(source)) {
+        return Status(StatusCode::kNotFound, "remux source file does not exist");
+    }
+
+#if !defined(NEXUS_MEDIA_WITH_FFMPEG)
+    static_cast<void>(dest);
+    return backend_unavailable_status();
+#else
+
+    auto src_path_str = path_string(source);
+    AVFormatContext* src_ctx = nullptr;
+    int ret = avformat_open_input(&src_ctx, src_path_str.c_str(), nullptr, nullptr);
+    if (ret < 0 || !src_ctx) {
+        return Status::invalid_argument(
+            "remux open source failed: " + ffmpeg_error(ret));
+    }
+    auto src_deleter = [](AVFormatContext* ctx) {
+        if (ctx) avformat_close_input(&ctx);
+    };
+    std::unique_ptr<AVFormatContext, decltype(src_deleter)> src_guard(
+        src_ctx, src_deleter);
+
+    ret = avformat_find_stream_info(src_ctx, nullptr);
+    if (ret < 0) {
+        return Status::invalid_argument(
+            "remux find stream info failed: " + ffmpeg_error(ret));
+    }
+
+    auto dst_path_str = path_string(dest);
+    AVFormatContext* dst_ctx = nullptr;
+    ret = avformat_alloc_output_context2(&dst_ctx, nullptr, nullptr,
+                                         dst_path_str.c_str());
+    if (ret < 0 || !dst_ctx) {
+        return Status::invalid_argument(
+            "remux create destination failed: " + ffmpeg_error(ret));
+    }
+
+    std::vector<int> stream_map(src_ctx->nb_streams, -1);
+    for (unsigned i = 0; i < src_ctx->nb_streams; ++i) {
+        AVStream* src_stream = src_ctx->streams[i];
+        AVStream* dst_stream = avformat_new_stream(dst_ctx, nullptr);
+        if (!dst_stream) {
+            avformat_free_context(dst_ctx);
+            return Status::internal("remux failed to create output stream");
+        }
+        ret = avcodec_parameters_copy(dst_stream->codecpar,
+                                       src_stream->codecpar);
+        if (ret < 0) {
+            avformat_free_context(dst_ctx);
+            return Status::internal(
+                "remux codec parameters copy failed: " + ffmpeg_error(ret));
+        }
+        dst_stream->codecpar->codec_tag = 0;
+        stream_map[i] = static_cast<int>(i);
+    }
+
+    if (!(dst_ctx->oformat->flags & AVFMT_NOFILE)) {
+        ret = avio_open(&dst_ctx->pb, dst_path_str.c_str(), AVIO_FLAG_WRITE);
+        if (ret < 0) {
+            avformat_free_context(dst_ctx);
+            return Status::invalid_argument(
+                "remux open dest file failed: " + ffmpeg_error(ret));
+        }
+    }
+
+    ret = avformat_write_header(dst_ctx, nullptr);
+    if (ret < 0) {
+        if (dst_ctx->pb) avio_closep(&dst_ctx->pb);
+        avformat_free_context(dst_ctx);
+        return Status::invalid_argument(
+            "remux write header failed: " + ffmpeg_error(ret));
+    }
+
+    AVPacket* pkt = av_packet_alloc();
+    if (!pkt) {
+        if (dst_ctx->pb) avio_closep(&dst_ctx->pb);
+        avformat_free_context(dst_ctx);
+        return Status::internal("remux packet allocation failed");
+    }
+
+    Status result = Status::ok_status();
+    while (av_read_frame(src_ctx, pkt) >= 0) {
+        if (pkt->stream_index < static_cast<int>(stream_map.size()) &&
+            stream_map[pkt->stream_index] >= 0) {
+            AVStream* in_stream = src_ctx->streams[pkt->stream_index];
+            AVStream* out_stream = dst_ctx->streams[pkt->stream_index];
+
+            pkt->pts = av_rescale_q_rnd(
+                pkt->pts, in_stream->time_base, out_stream->time_base,
+                AVRounding(AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
+            pkt->dts = av_rescale_q_rnd(
+                pkt->dts, in_stream->time_base, out_stream->time_base,
+                AVRounding(AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
+            pkt->duration = av_rescale_q(
+                pkt->duration, in_stream->time_base, out_stream->time_base);
+            pkt->pos = -1;
+
+            ret = av_interleaved_write_frame(dst_ctx, pkt);
+            if (ret < 0) {
+                result = Status::invalid_argument(
+                    "remux write packet failed: " + ffmpeg_error(ret));
+                break;
+            }
+        }
+        av_packet_unref(pkt);
+    }
+
+    av_packet_free(&pkt);
+    av_write_trailer(dst_ctx);
+    if (dst_ctx->pb) avio_closep(&dst_ctx->pb);
+    avformat_free_context(dst_ctx);
+
+    return result;
+#endif
+}
+
 MediaReader::MediaReader() = default;
 
 MediaReader::MediaReader(MediaReader&& other) noexcept = default;
@@ -1786,19 +1916,18 @@ detail::MediaMuxerStorage::open(
     const MediaMuxConfig& config) {
     static_cast<void>(path);
     static_cast<void>(config);
-    auto storage = std::make_unique<MediaMuxerStorage>();
-    return storage;
+    return backend_unavailable_status();
 }
 
 Result<int> detail::MediaMuxerStorage::add_stream(
     const MediaEncodeConfig& encoder_config) {
     static_cast<void>(encoder_config);
-    return 0;
+    return backend_unavailable_status();
 }
 
 Status detail::MediaMuxerStorage::write_packet(const MediaPacket& packet) {
     static_cast<void>(packet);
-    return Status::ok_status();
+    return backend_unavailable_status();
 }
 
 #endif // NEXUS_MEDIA_WITH_FFMPEG

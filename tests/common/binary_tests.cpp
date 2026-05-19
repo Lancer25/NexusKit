@@ -46,12 +46,12 @@ TEST_CASE("append_le32 appends little-endian bytes") {
 
 TEST_CASE("read_le16 reads little-endian bytes") {
     const std::uint8_t data[] = {0x78, 0x56};
-    CHECK(nexus::common::read_le16(data, 0) == 0x5678);
+    CHECK(nexus::common::read_le16(data, sizeof(data), 0) == 0x5678);
 }
 
 TEST_CASE("read_le32 reads little-endian bytes") {
     const std::uint8_t data[] = {0x78, 0x56, 0x34, 0x12};
-    CHECK(nexus::common::read_le32(data, 0) == 0x12345678);
+    CHECK(nexus::common::read_le32(data, sizeof(data), 0) == 0x12345678);
 }
 
 TEST_CASE("hex_encode produces lowercase hex string") {

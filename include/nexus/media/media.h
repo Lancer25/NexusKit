@@ -404,6 +404,18 @@ NEXUS_MEDIA_API Status write_wav_file(
     const std::filesystem::path& path,
     const std::vector<MediaFrame>& frames);
 
+/// Copies media streams from `source` to `dest` without re-encoding.
+///
+/// Opens the source file, copies all streams, and writes packets directly
+/// without decoding or encoding.  Equivalent to `ffmpeg -c copy`.
+///
+/// @retval kInvalidArgument when source or dest path is empty.
+/// @retval kNotFound when source does not exist.
+/// @retval kUnavailable when FFmpeg is unavailable or the operation fails.
+NEXUS_MEDIA_API Status remux_file(
+    const std::filesystem::path& source,
+    const std::filesystem::path& dest);
+
 /// Writes a video frame to a binary P6 PPM image file.
 ///
 /// Supports `rgb24`, `rgba`, `bgr24`, and `bgra` frames.  Alpha is dropped

@@ -60,6 +60,7 @@ if(TARGET nexus::net)
     add_executable(nexus_net_tests
         net/http_tests.cpp
         net/tcp_tests.cpp
+        net/tcp_listener_tests.cpp
         net/udp_tests.cpp
         net/websocket_tests.cpp
         net/websocket_server_tests.cpp
@@ -169,6 +170,7 @@ endif()
 if(TARGET nexus::audio)
     add_executable(nexus_audio_tests
         audio/audio_tests.cpp
+        audio/audio_player_tests.cpp
     )
 
     target_link_libraries(nexus_audio_tests

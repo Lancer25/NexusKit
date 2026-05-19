@@ -107,27 +107,33 @@ bool UsbDevice::is_open() const {
 }
 
 Status UsbDevice::write(const std::vector<std::uint8_t>& report) {
+    if (report.empty()) {
+        return Status::invalid_argument("USB write report must not be empty");
+    }
     if (!storage_) {
-        hid::HidDevice device;
-        return device.write(report);
+        return Status(StatusCode::kFailedPrecondition, "USB device is not open");
     }
 
     return storage_->device().write(report);
 }
 
 Result<std::vector<std::uint8_t>> UsbDevice::read(std::size_t max_bytes, int timeout_ms) {
+    if (max_bytes == 0) {
+        return Status::invalid_argument("USB read max_bytes must be greater than zero");
+    }
     if (!storage_) {
-        hid::HidDevice device;
-        return device.read(max_bytes, timeout_ms);
+        return Status(StatusCode::kFailedPrecondition, "USB device is not open");
     }
 
     return storage_->device().read(max_bytes, timeout_ms);
 }
 
 Status UsbDevice::send_feature_report(const std::vector<std::uint8_t>& report) {
+    if (report.empty()) {
+        return Status::invalid_argument("USB feature report must not be empty");
+    }
     if (!storage_) {
-        hid::HidDevice device;
-        return device.send_feature_report(report);
+        return Status(StatusCode::kFailedPrecondition, "USB device is not open");
     }
 
     return storage_->device().send_feature_report(report);
@@ -136,24 +142,25 @@ Status UsbDevice::send_feature_report(const std::vector<std::uint8_t>& report) {
 Result<std::vector<std::uint8_t>> UsbDevice::get_feature_report(
     std::uint8_t report_id,
     std::size_t max_bytes) {
+    if (max_bytes == 0) {
+        return Status::invalid_argument("USB get_feature_report max_bytes must be greater than zero");
+    }
     if (!storage_) {
-        hid::HidDevice device;
-        return device.get_feature_report(report_id, max_bytes);
+        return Status(StatusCode::kFailedPrecondition, "USB device is not open");
     }
 
     return storage_->device().get_feature_report(report_id, max_bytes);
 }
 
 Status UsbDevice::close() {
-    if (storage_) {
-        const auto status = storage_->device().close();
-        storage_.reset();
-        log::write(log::Level::debug, "USB close");
-        return status;
+    if (!storage_) {
+        return Status::ok_status();
     }
 
-    hid::HidDevice device;
-    return device.close();
+    const auto status = storage_->device().close();
+    storage_.reset();
+    log::write(log::Level::debug, "USB close");
+    return status;
 }
 
 UsbDevice::UsbDevice(std::unique_ptr<detail::UsbDeviceStorage> storage)

@@ -17,7 +17,7 @@
 
 ## Scope
 
-The initial module supports HID-backed USB device discovery, path-based open, input/output reports, feature reports, and USB-level hotplug events. UVC camera discovery, USB audio discovery, and device-class-specific abstractions are planned follow-up work. HID-level hotplug is not planned; use `UsbHotplugMonitor` for device arrival/removal notifications.
+The initial module supports HID-backed USB device discovery, path-based open, input/output reports, feature reports, and USB-level hotplug events. UVC camera discovery, USB audio discovery, and device-class-specific abstractions are planned follow-up work. Non-HID transport protocols (bulk, isochronous, and raw control transfers via libusb/WinUSB) are planned for a future transport backend. HID-level hotplug is not planned; use `UsbHotplugMonitor` for device arrival/removal notifications.
 
 ## Report Id and Feature Report Conventions
 

@@ -21,6 +21,8 @@ namespace detail {
 class TcpClientStorage;
 }
 
+class TcpListener;
+
 /// A TCP endpoint (host and port).
 struct TcpEndpoint {
     /// Hostname or IP address.
@@ -177,6 +179,8 @@ private:
     static Result<TcpClient> connect_impl(
         const TcpEndpoint& endpoint,
         const TcpConnectOptions& options);
+
+    friend class TcpListener;
 
     std::shared_ptr<detail::TcpClientStorage> storage_;
 };

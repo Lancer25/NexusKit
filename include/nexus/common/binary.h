@@ -23,9 +23,13 @@ NEXUS_COMMON_API void append_le16(std::vector<std::uint8_t>& data, std::uint16_t
 NEXUS_COMMON_API void append_le32(std::vector<std::uint8_t>& data, std::uint32_t value);
 
 /// Reads a little-endian 16-bit integer from `data` at byte `offset`.
-NEXUS_COMMON_API std::uint16_t read_le16(const std::uint8_t* data, std::size_t offset);
+///
+/// `offset + 2` must not exceed `data_size`, or the behavior is undefined.
+NEXUS_COMMON_API std::uint16_t read_le16(const std::uint8_t* data, std::size_t data_size, std::size_t offset);
 /// Reads a little-endian 32-bit integer from `data` at byte `offset`.
-NEXUS_COMMON_API std::uint32_t read_le32(const std::uint8_t* data, std::size_t offset);
+///
+/// `offset + 4` must not exceed `data_size`, or the behavior is undefined.
+NEXUS_COMMON_API std::uint32_t read_le32(const std::uint8_t* data, std::size_t data_size, std::size_t offset);
 
 /// Encodes `length` bytes from `data` as a lowercase hex string.
 NEXUS_COMMON_API std::string hex_encode(const std::uint8_t* data, std::size_t length);

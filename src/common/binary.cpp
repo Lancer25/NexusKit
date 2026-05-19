@@ -31,12 +31,18 @@ void append_le32(std::vector<std::uint8_t>& data, std::uint32_t value) {
     data.push_back(static_cast<std::uint8_t>((value >> 24) & 0xff));
 }
 
-std::uint16_t read_le16(const std::uint8_t* data, std::size_t offset) {
+std::uint16_t read_le16(const std::uint8_t* data, std::size_t data_size, std::size_t offset) {
+    if (offset + 2 > data_size) {
+        throw std::out_of_range("read_le16: offset + 2 exceeds data_size");
+    }
     return static_cast<std::uint16_t>(data[offset]) |
            (static_cast<std::uint16_t>(data[offset + 1]) << 8);
 }
 
-std::uint32_t read_le32(const std::uint8_t* data, std::size_t offset) {
+std::uint32_t read_le32(const std::uint8_t* data, std::size_t data_size, std::size_t offset) {
+    if (offset + 4 > data_size) {
+        throw std::out_of_range("read_le32: offset + 4 exceeds data_size");
+    }
     return static_cast<std::uint32_t>(data[offset]) |
            (static_cast<std::uint32_t>(data[offset + 1]) << 8) |
            (static_cast<std::uint32_t>(data[offset + 2]) << 16) |
