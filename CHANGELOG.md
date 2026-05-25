@@ -84,3 +84,4 @@
 - Add bounds checking to `nexus_common` binary I/O helpers and document Thread class API.
 - Clean up Pugixml CMake dependency recipe and remove unused fetch knobs.
 - Replace the direct FFmpeg probe example with `nexus_example_media_probe`, which uses the public `nexus_media` API.
+- Add `nexus_example_net_tcp_echo` for a local loopback TCP listener/client echo exchange.

@@ -37,6 +37,16 @@
 
 The HTTP client supports `http://` and `https://` (when built with OpenSSL) base URLs without a path, GET, POST, PUT, DELETE, request headers, response headers, and query path construction. All I/O types provide both sync (blocking) and async (callback-driven via private Asio io_context workers) operations: `TcpClient`, `UdpSocket`, `HttpClient`, `WebSocketClient`, and `WebSocketServer`. `TcpListener` provides asynchronous accept via background worker thread, delivering connected `TcpClient` instances through an `AcceptHandler` callback. WebSocket supports `ws://` and `wss://` (when built with OpenSSL). The `WebSocketServer` provides multi-client listen/accept, per-client send, and connection lifecycle callbacks. HTTP redirects are supported via `HttpClientOptions::follow_redirects`. HTTP streaming is planned follow-up work.
 
+## Example
+
+When `NEXUS_BUILD_EXAMPLES=ON` and `NEXUS_ENABLE_NET=ON`, NexusKit builds `nexus_example_net_tcp_echo`.
+
+```powershell
+nexus_example_net_tcp_echo
+```
+
+The example binds a local TCP listener to `127.0.0.1:0`, connects a `TcpClient` to the assigned port, echoes a short message through the accepted socket, and exits without external network access.
+
 ## Backend
 
 The current HTTP backend is cpp-httplib (with optional OpenSSL for TLS). The current TCP and UDP backend is standalone Asio. The current WebSocket backend is websocketpp on standalone Asio (with optional OpenSSL for wss://). These are included only from implementation and test files, so users of `nexus_net` depend on NexusKit headers instead of third-party networking headers.

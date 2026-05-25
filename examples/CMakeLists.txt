@@ -1,5 +1,9 @@
 add_subdirectory(core_status)
 
+if(TARGET nexus::net)
+    add_subdirectory(net_tcp_echo)
+endif()
+
 if(TARGET nexus::media)
     add_subdirectory(media_probe)
 endif()
