@@ -66,6 +66,17 @@ When CMake targets `FFmpeg::avutil`, `FFmpeg::avcodec`, and `FFmpeg::avformat` a
 
 Public `nexus_media` headers do not expose FFmpeg headers or FFmpeg ownership types.
 
+## Example
+
+When `NEXUS_BUILD_EXAMPLES=ON` and `NEXUS_ENABLE_MEDIA=ON`, NexusKit builds `nexus_example_media_probe`.
+
+```powershell
+nexus_example_media_probe
+nexus_example_media_probe input.mp4
+```
+
+The example prints FFmpeg backend status and, when a media path is provided, probes container and stream metadata through the public `nexus_media` API.
+
 ### Media Muxer
 
 `MediaMuxer` writes encoded packets to a container file via FFmpeg's `avformat` muxing API. It supports MP4, MPEG-PS, and any container that FFmpeg can write.

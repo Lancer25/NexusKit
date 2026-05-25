@@ -21,7 +21,7 @@ jobs:
           python-version: "3.11"
 
       - name: Run release docs checker tests
-        run: python -m unittest tests.scripts.test_check_release_docs -v
+        run: python -m unittest tests.scripts.test_check_release_docs tests.scripts.test_examples_contracts -v
 
       - name: Run documentation checks
         run: |

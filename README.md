@@ -88,7 +88,7 @@ See [Build Guide](docs/build.md) for detailed dependency requirements and Linux 
 | `nexus_example_core_status` | nexus_core | Demonstrates Status and Result error-handling patterns |
 | `nexus_example_screen_capture` | nexus_screen | Captures a display/window/region frame to a PPM image |
 | `nexus_example_usb_hotplug` | nexus_usb | Lists USB devices and watches arrival/removal events |
-| `nexus_example_ffmpeg_probe` | nexus_media | Probes a media file for stream metadata |
+| `nexus_example_media_probe` | nexus_media | Shows FFmpeg backend status and probes media metadata through `nexus_media` |
 
 Screen capture usage:
 

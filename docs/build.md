@@ -111,7 +111,7 @@ OpenSSL source builds require Perl. On Windows they also require `nmake` from a 
 `nexus_media` is enabled with `NEXUS_ENABLE_MEDIA=ON`. The first media slice builds without FFmpeg and reports the backend as unavailable unless FFmpeg CMake targets are present. To use the source-built FFmpeg backend, also set `NEXUS_BUILD_FFMPEG=ON`. To use an existing FFmpeg install tree, leave `NEXUS_BUILD_FFMPEG=OFF` and set `NEXUS_FFMPEG_INSTALL_DIR` to a prefix containing `include/libavutil/avutil.h` plus FFmpeg libraries under `bin` on Windows or `lib` on Linux.
 `nexus_screen` is enabled with `NEXUS_ENABLE_SCREEN=ON` and defaults to `OFF`. On Windows it uses DXGI Desktop Duplication through the Windows SDK (D3D11, DXGI); MSVC 2022 provides these headers and libraries by default. On Linux it uses X11 when development files are available at configure time; install `libx11-dev` (Debian/Ubuntu) or `libX11-devel` (Fedora/RHEL) to enable the X11 backend. Builds without a supported backend still compile but report the screen backend as unavailable at runtime.
 `NEXUS_BUILD_TESTS` defaults to `ON` and builds the Catch2 unit-test suite. Set `-DNEXUS_BUILD_TESTS=OFF` to skip test targets and the Catch2 dependency.
-`NEXUS_BUILD_EXAMPLES` defaults to `ON` and builds runnable example programs such as `nexus_example_screen_capture` and `nexus_example_ffmpeg_probe`. Set `-DNEXUS_BUILD_EXAMPLES=OFF` to skip example targets.
+`NEXUS_BUILD_EXAMPLES` defaults to `ON` and builds runnable example programs such as `nexus_example_screen_capture` and `nexus_example_media_probe`. Set `-DNEXUS_BUILD_EXAMPLES=OFF` to skip example targets.
 
 For the Windows FFmpeg source build, the tested MSYS2 UCRT64 package set is:
 

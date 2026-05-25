@@ -1,7 +1,7 @@
 add_subdirectory(core_status)
 
-if(NEXUS_BUILD_FFMPEG)
-    add_subdirectory(ffmpeg_probe)
+if(TARGET nexus::media)
+    add_subdirectory(media_probe)
 endif()
 
 if(TARGET nexus::screen)

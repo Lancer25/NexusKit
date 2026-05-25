@@ -83,3 +83,4 @@
 - Fix USB argument validation ordering so empty reports and zero max_bytes consistently return `kInvalidArgument` regardless of device open state.
 - Add bounds checking to `nexus_common` binary I/O helpers and document Thread class API.
 - Clean up Pugixml CMake dependency recipe and remove unused fetch knobs.
+- Replace the direct FFmpeg probe example with `nexus_example_media_probe`, which uses the public `nexus_media` API.
