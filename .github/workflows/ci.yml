@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  docs:
+    name: Documentation checks
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run release docs checker tests
+        run: python -m unittest tests.scripts.test_check_release_docs -v
+
+      - name: Run documentation checks
+        run: |
+          python scripts/check_release_docs.py --dir .
+          python scripts/check_public_comments.py --dir .
+
+  default-build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows MSVC Release
+            os: windows-2022
+            preset: windows-msvc-release
+            build_dir: build/windows-msvc-release
+            install_prefix: build/ci-install/windows-msvc-release
+            config: Release
+          - name: Linux Release
+            os: ubuntu-24.04
+            preset: linux-release
+            build_dir: build/linux-release
+            install_prefix: build/ci-install/linux-release
+            config: Release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux packages
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }}
+
+      - name: Install
+        run: cmake --install ${{ matrix.build_dir }} --config ${{ matrix.config }} --prefix ${{ matrix.install_prefix }}
+
+      - name: Configure consumer
+        run: cmake -S tests/packaging/consumer -B build/consumer-${{ matrix.preset }} -DCMAKE_PREFIX_PATH="${{ github.workspace }}/${{ matrix.install_prefix }}"
+
+      - name: Build consumer
+        run: cmake --build build/consumer-${{ matrix.preset }} --config ${{ matrix.config }}
