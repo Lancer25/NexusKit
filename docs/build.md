@@ -91,12 +91,13 @@ cmake -S . -B build/ffmpeg -DNEXUS_BUILD_FFMPEG=ON
 cmake -S . -B build/camera -DNEXUS_ENABLE_CAMERA=ON -DNEXUS_BUILD_LIBUVC=ON
 
 # Full build (all modules, FFmpeg from source, GPL x264, camera via libuvc)
-cmake --preset windows-msvc-release -B build/windows-msvc-release \
-  -DNEXUS_ENABLE_USB=ON \
-  -DNEXUS_ENABLE_HID=ON -DNEXUS_BUILD_HIDAPI=ON \
-  -DNEXUS_ENABLE_AUDIO=ON \
-  -DNEXUS_ENABLE_MEDIA=ON -DNEXUS_BUILD_FFMPEG=ON \
-  -DNEXUS_ENABLE_CAMERA=ON -DNEXUS_BUILD_LIBUVC=ON \
+cmake --preset windows-msvc-release -B build/windows-msvc-release `
+  -DNEXUS_ENABLE_SCREEN=ON `
+  -DNEXUS_ENABLE_USB=ON `
+  -DNEXUS_ENABLE_HID=ON -DNEXUS_BUILD_HIDAPI=ON `
+  -DNEXUS_ENABLE_AUDIO=ON `
+  -DNEXUS_ENABLE_MEDIA=ON -DNEXUS_BUILD_FFMPEG=ON `
+  -DNEXUS_ENABLE_CAMERA=ON -DNEXUS_BUILD_LIBUVC=ON `
   -DNEXUS_FFMPEG_ENABLE_GPL=ON
 ```
 
@@ -108,7 +109,7 @@ OpenSSL source builds require Perl. On Windows they also require `nmake` from a 
 `nexus_hid` is enabled with `NEXUS_ENABLE_HID=ON` and uses hidapi as a private backend. To build hidapi from source, also set `NEXUS_BUILD_HIDAPI=ON`. It depends on `nexus_log` for internal diagnostics, so `NEXUS_ENABLE_HID=ON` requires `NEXUS_ENABLE_LOG=ON`.
 `nexus_usb` is enabled with `NEXUS_ENABLE_USB=ON`. The initial implementation uses `nexus_hid` for HID-backed device discovery, so it requires both `NEXUS_ENABLE_LOG=ON` and `NEXUS_ENABLE_HID=ON`.
 `nexus_media` is enabled with `NEXUS_ENABLE_MEDIA=ON`. The first media slice builds without FFmpeg and reports the backend as unavailable unless FFmpeg CMake targets are present. To use the source-built FFmpeg backend, also set `NEXUS_BUILD_FFMPEG=ON`. To use an existing FFmpeg install tree, leave `NEXUS_BUILD_FFMPEG=OFF` and set `NEXUS_FFMPEG_INSTALL_DIR` to a prefix containing `include/libavutil/avutil.h` plus FFmpeg libraries under `bin` on Windows or `lib` on Linux.
-`nexus_screen` is enabled by default through `NEXUS_ENABLE_SCREEN=ON`. On Windows it uses DXGI Desktop Duplication through the Windows SDK (D3D11, DXGI); MSVC 2022 provides these headers and libraries by default. On Linux it uses X11 when development files are available at configure time; install `libx11-dev` (Debian/Ubuntu) or `libX11-devel` (Fedora/RHEL) to enable the X11 backend. Builds without a supported backend still compile but report the screen backend as unavailable at runtime.
+`nexus_screen` is enabled with `NEXUS_ENABLE_SCREEN=ON` and defaults to `OFF`. On Windows it uses DXGI Desktop Duplication through the Windows SDK (D3D11, DXGI); MSVC 2022 provides these headers and libraries by default. On Linux it uses X11 when development files are available at configure time; install `libx11-dev` (Debian/Ubuntu) or `libX11-devel` (Fedora/RHEL) to enable the X11 backend. Builds without a supported backend still compile but report the screen backend as unavailable at runtime.
 `NEXUS_BUILD_TESTS` defaults to `ON` and builds the Catch2 unit-test suite. Set `-DNEXUS_BUILD_TESTS=OFF` to skip test targets and the Catch2 dependency.
 `NEXUS_BUILD_EXAMPLES` defaults to `ON` and builds runnable example programs such as `nexus_example_screen_capture` and `nexus_example_ffmpeg_probe`. Set `-DNEXUS_BUILD_EXAMPLES=OFF` to skip example targets.
 
@@ -156,7 +157,7 @@ Libraries are produced under `build/<preset>/lib`.
 
 ## Release Builds
 
-Release builds use `CMAKE_BUILD_TYPE=Release` with compiler optimizations enabled (`/O2` on MSVC, `-O3` on GCC/Clang) and `NDEBUG` defined. Debug symbols are stripped.
+Release builds use `CMAKE_BUILD_TYPE=Release` with compiler optimizations enabled (`/O2` on MSVC, `-O3` on GCC/Clang) and `NDEBUG` defined. The presets do not strip debug symbols automatically; use an explicit strip or install-strip step if a smaller redistributable package requires it.
 
 All Debug presets have corresponding Release presets:
 

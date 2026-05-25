@@ -22,7 +22,7 @@
 
 ## Scope
 
-The camera capture module supports enumerating USB camera devices, selecting a device by id (or using the first available device), and capturing video frames delivered via callback. Format negotiation tries MJPEG first, then falls back to YUYV. Capture runs on an internal thread; callers receive frames on that thread. Standard UVC/V4L2 camera controls (brightness, contrast, saturation, focus, zoom, exposure, white balance, etc.) are supported on Linux via V4L2 `VIDIOC_G_CTRL`/`VIDIOC_S_CTRL`/`VIDIOC_QUERYCTRL`. Camera hotplug events are a planned follow-up.
+The camera capture module supports enumerating USB camera devices, selecting a device by id (or using the first available device), and capturing video frames delivered via callback. Format negotiation tries MJPEG first, then falls back to YUYV. Capture runs on an internal thread; callers receive frames on that thread. Standard UVC/V4L2 camera controls (brightness, contrast, saturation, focus, zoom, exposure, white balance, etc.) are supported on Linux via V4L2 `VIDIOC_G_CTRL`/`VIDIOC_S_CTRL`/`VIDIOC_QUERYCTRL`. Camera device change notifications are a planned follow-up.
 
 ## Backend
 

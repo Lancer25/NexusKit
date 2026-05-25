@@ -10,14 +10,14 @@ Recipes are intentionally opt-in. The top-level build only activates heavyweight
 
 ## Modules
 
-- `nexus_core`: The lowest-level module — `StatusCode`, `Status`, and `Result<T>` types. Depends only on C++17 and minimal platform SDKs.
+- `nexus_core`: The lowest-level module - `StatusCode`, `Status`, and `Result<T>` types. Depends only on C++17 and minimal platform SDKs.
 - `nexus_log`: Logging facade with spdlog as a private backend. Depends on `nexus_core`.
-- `nexus_common`: Shared utilities — JSON, XML, string manipulation, time helpers, binary I/O, platform abstractions, math helpers, diagnostic logging, and threading primitives (`Thread`, `Event`). Depends on `nexus_core`, `nexus_log`, and private backend libraries (nlohmann_json, pugixml).
-- `nexus_net`: Networking — HTTP client/server, TCP, UDP, WebSocket (client and server), with sync/async methods and optional TLS via OpenSSL. Depends on `nexus_log`, with private backends (cpp-httplib, Asio, websocketpp).
+- `nexus_common`: Shared utilities - JSON, XML, string manipulation, time helpers, binary I/O, platform abstractions, math helpers, diagnostic logging, and threading primitives (`Thread`, `Event`). Depends on `nexus_core`, `nexus_log`, and private backend libraries (nlohmann_json, pugixml).
+- `nexus_net`: Networking - HTTP client, TCP listener/client, UDP, WebSocket (client and server), with sync/async methods and optional TLS via OpenSSL. Depends on `nexus_log`, with private backends (cpp-httplib, Asio, websocketpp).
 - `nexus_usb`: USB device discovery, HID-backed report I/O, and USB-level hotplug monitoring. Depends on `nexus_hid` and `nexus_log`.
 - `nexus_hid`: HID device enumeration through a private hidapi backend. Depends on `nexus_log`.
-- `nexus_media`: FFmpeg-backed media processing — backend discovery, metadata probing, packet reading, audio/video decoding, resampling/format conversion, encoding, container muxing, and lightweight WAV/PPM writers. Depends on `nexus_log`.
-- `nexus_screen`: Desktop and window capture — Windows DXGI Desktop Duplication and Linux X11, with display enumeration, region/window capture, cursor overlay, and pixel-format helpers. Depends on `nexus_log`.
+- `nexus_media`: FFmpeg-backed media processing - backend discovery, metadata probing, packet reading, audio/video decoding, resampling/format conversion, encoding, container muxing, and lightweight WAV/PPM writers. Depends on `nexus_log`.
+- `nexus_screen`: Desktop and window capture - Windows DXGI Desktop Duplication and Linux X11, with display enumeration, region/window capture, cursor overlay, and pixel-format helpers. Depends on `nexus_log`.
 - `nexus_audio`: Audio input device enumeration and PCM int16 capture via WASAPI (Windows) or PulseAudio (Linux), with volume/mute control. Depends on `nexus_log` and `nexus_common`.
 - `nexus_camera`: USB camera device enumeration and video frame capture via libuvc (Windows) or V4L2 (Linux), with camera control support. Depends on `nexus_log` and `nexus_common`.
 

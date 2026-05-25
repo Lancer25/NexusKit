@@ -33,7 +33,7 @@
 
 ## Scope
 
-The capture module supports enumerating input devices, selecting a device by id (or using the system default), and capturing PCM int16 audio frames delivered via callback. The playback module supports enumerating output devices, selecting a device by id (or using the system default), and rendering PCM int16 audio frames pulled via callback on an internal render thread. Callbacks are invoked on internal background threads; callers must return quickly to avoid audio glitches. WASAPI provides volume and mute control via `IAudioEndpointVolume`. Device hotplug events are a planned follow-up.
+The capture module supports enumerating input devices, selecting a device by id (or using the system default), and capturing PCM int16 audio frames delivered via callback. The playback module supports enumerating output devices, selecting a device by id (or using the system default), and rendering PCM int16 audio frames pulled via callback on an internal render thread. Callbacks are invoked on internal background threads; callers must return quickly to avoid audio glitches. WASAPI provides volume and mute control via `IAudioEndpointVolume`. Audio endpoint change notifications are a planned follow-up.
 
 ## Backend
 

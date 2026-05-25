@@ -68,10 +68,8 @@ Any public API addition or behavior change must update:
 - `README.md` or `docs/architecture.md` when the module-level capability changes.
 - Tests that cover at least one success path and the most important failure path.
 
-## Current Documentation Roadmap
+## Public Documentation Maintenance
 
-The existing public headers predate this guide and are not fully annotated yet. Annotate them in small phases:
+The initial public header annotation pass is complete. Future API work must keep comments current in the same change that adds or changes behavior.
 
-1. `nexus_core` and `nexus_common`.
-2. `nexus_media` and `nexus_screen`.
-3. `nexus_net`, `nexus_usb`, `nexus_hid`, and `nexus_log`.
+When auditing existing headers, prioritize callback typedefs, enum values, RAII special member functions, and platform-dependent error semantics.

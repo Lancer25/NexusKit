@@ -10,12 +10,12 @@ All ten modules are implemented with tests, documentation, and examples. The ful
 
 ## Features
 
-- **Cross-platform** — Windows (MSVC 2022) and Linux (GCC/Clang), with platform abstractions isolated in implementation files
-- **Sync + async** — every network I/O type provides both blocking and callback-driven async operations
-- **TLS support** — HTTPS and WSS via optional OpenSSL integration (`NEXUS_NET_HAS_TLS`)
-- **RAII everywhere** — resource-owning types manage lifetimes automatically
-- **Clean headers** — public API headers never expose backend libraries (Asio, cpp-httplib, websocketpp, FFmpeg, hidapi, spdlog)
-- **Consistent error handling** — `nexus::Status` / `nexus::Result<T>` for all recoverable failures
+- **Cross-platform** - Windows (MSVC 2022) and Linux (GCC/Clang), with platform abstractions isolated in implementation files
+- **Sync + async** - every network I/O type provides both blocking and callback-driven async operations
+- **TLS support** - HTTPS and WSS via optional OpenSSL integration (`NEXUS_NET_HAS_TLS`)
+- **RAII everywhere** - resource-owning types manage lifetimes automatically
+- **Clean headers** - public API headers never expose backend libraries (Asio, cpp-httplib, websocketpp, FFmpeg, hidapi, spdlog)
+- **Consistent error handling** - `nexus::Status` / `nexus::Result<T>` for all recoverable failures
 
 ## Requirements
 
@@ -40,18 +40,18 @@ cmake --build --preset linux-debug
 ctest --preset linux-debug
 ```
 
-This builds `nexus_core`, `nexus_log`, `nexus_common`, and `nexus_net` — no system packages needed beyond CMake and a C++17 compiler.
+This builds `nexus_core`, `nexus_log`, `nexus_common`, and `nexus_net` - no system packages needed beyond CMake and a C++17 compiler.
 
 ### All modules (requires MSYS2 UCRT64 on Windows)
 
 ```powershell
-cmake --preset windows-msvc-release -B build/windows-msvc-release \
-  -DNEXUS_ENABLE_SCREEN=ON \
-  -DNEXUS_ENABLE_USB=ON \
-  -DNEXUS_ENABLE_HID=ON -DNEXUS_BUILD_HIDAPI=ON \
-  -DNEXUS_ENABLE_AUDIO=ON \
-  -DNEXUS_ENABLE_MEDIA=ON -DNEXUS_BUILD_FFMPEG=ON \
-  -DNEXUS_ENABLE_CAMERA=ON -DNEXUS_BUILD_LIBUVC=ON \
+cmake --preset windows-msvc-release -B build/windows-msvc-release `
+  -DNEXUS_ENABLE_SCREEN=ON `
+  -DNEXUS_ENABLE_USB=ON `
+  -DNEXUS_ENABLE_HID=ON -DNEXUS_BUILD_HIDAPI=ON `
+  -DNEXUS_ENABLE_AUDIO=ON `
+  -DNEXUS_ENABLE_MEDIA=ON -DNEXUS_BUILD_FFMPEG=ON `
+  -DNEXUS_ENABLE_CAMERA=ON -DNEXUS_BUILD_LIBUVC=ON `
   -DNEXUS_FFMPEG_ENABLE_GPL=ON
 cmake --build build/windows-msvc-release --config Release
 ctest --test-dir build/windows-msvc-release -C Release
@@ -109,13 +109,13 @@ nexus_example_usb_hotplug --watch --seconds 30
 
 ## Documentation
 
-- [Architecture](docs/architecture.md) — module layout, dependency boundaries, and design rules
-- [Build Guide](docs/build.md) — presets, dependency fetching, proxy settings, and install layout
-- [API Style Guide](docs/api-style.md) — public header conventions, error semantics, and backend-boundary rules
-- [Iteration Guide](docs/iteration.md) — development workflow, recent work, and roadmap
-- [Maintenance Guide](docs/maintenance.md) — daily operations and repository hygiene
-- [Module Docs](docs/modules/) — per-module API reference and error model
-- [Changelog](CHANGELOG.md) — version history
+- [Architecture](docs/architecture.md) - module layout, dependency boundaries, and design rules
+- [Build Guide](docs/build.md) - presets, dependency fetching, proxy settings, and install layout
+- [API Style Guide](docs/api-style.md) - public header conventions, error semantics, and backend-boundary rules
+- [Iteration Guide](docs/iteration.md) - development workflow, recent work, and roadmap
+- [Maintenance Guide](docs/maintenance.md) - daily operations and repository hygiene
+- [Module Docs](docs/modules/) - per-module API reference and error model
+- [Changelog](CHANGELOG.md) - version history
 
 ## License
 

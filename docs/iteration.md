@@ -54,16 +54,22 @@ Each implementation phase should be small, testable, and documented.
 - Phase 11D: Merge `AsyncUdpSocket` into `UdpSocket` for unified sync/async UDP.
 - Phase 11E: Add `WebSocketServer` with multi-client support, sync/async listen, and lifecycle callbacks.
 - Phase 11F: Add OpenSSL DLL delay-load on MSVC for optional TLS at runtime.
-- Phase 12A: Add `nexus_audio` with WASAPI backend — audio input device enumeration and PCM int16 capture.
-- Phase 12B: Add `nexus_camera` with libuvc (Windows) and V4L2 (Linux) backends — USB camera device enumeration and video frame capture.
-- Phase 12C: Optimize `nexus_audio` and `nexus_camera` — add WASAPI volume/mute control, implement full PulseAudio backend, add V4L2 camera controls (brightness, contrast, etc.).
+- Phase 12A: Add `nexus_audio` with WASAPI backend - audio input device enumeration and PCM int16 capture.
+- Phase 12B: Add `nexus_camera` with libuvc (Windows) and V4L2 (Linux) backends - USB camera device enumeration and video frame capture.
+- Phase 12C: Optimize `nexus_audio` and `nexus_camera` - add WASAPI volume/mute control, implement full PulseAudio backend, add V4L2 camera controls (brightness, contrast, etc.).
 
 ## Near-Term Roadmap
+
+### Post-0.1.0 Roadmap
+
+- Phase 13A: Add a CI/build matrix and packaging checks for default, optional-module, and release configurations.
+- Phase 13B: Fill example coverage for modules with stable public APIs, starting with media mux/remux workflows and audio/camera smoke examples.
+- Phase 13C: Audit public API comments and contracts across all modules, including callback threading, ownership, timeout, and error semantics.
 
 ### Media Follow-Ups
 
 - ~~Add focused muxing tests for mixed audio/video interleaving once video encode coverage is expanded.~~ Phase 9G: added `make_test_video_frame` helper, H264 video encoder test, and mixed AAC+H264 MP4 muxing test.
-- Consider direct container-to-container remux as a separate high-level workflow after encoder/muxer packet contracts are stable.
+- ~~Consider direct container-to-container remux as a separate high-level workflow after encoder/muxer packet contracts are stable.~~ Implemented as `remux_file`.
 
 ### Screen Follow-Ups
 
@@ -73,7 +79,7 @@ Each implementation phase should be small, testable, and documented.
 
 ### Net Follow-Ups
 
-- ~~Add async transport wrappers (callback-driven, private Asio io_context workers).~~ Phase 10B–11C: all net types (`TcpClient`, `UdpSocket`, `HttpClient`, `WebSocketClient`, `WebSocketServer`) now provide async methods alongside sync.
+- ~~Add async transport wrappers (callback-driven, private Asio io_context workers).~~ Phase 10B-11E: all net types (`TcpClient`, `UdpSocket`, `HttpClient`, `WebSocketClient`, `WebSocketServer`) now provide async methods alongside sync.
 - ~~Extend timeout option patterns to UDP, WebSocket, and HTTP.~~ Phase 10A: added `UdpReceiveOptions` and `WebSocketClientOptions::write_timeout`.
 - ~~Add TLS support for HTTP (https://) and WebSocket (wss://).~~ Phase 11C: conditional OpenSSL linkage via `NEXUS_NET_HAS_TLS`.
 - ~~Add HTTP redirect support.~~ Added `follow_redirects` to `HttpClientOptions`.

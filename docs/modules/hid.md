@@ -16,7 +16,7 @@
 
 ## Scope
 
-The initial module supports device enumeration, path-based open, input/output reports, and feature reports. Hotplug tracking and higher-level USB abstractions are planned follow-up work.
+The module supports device enumeration, path-based open, input/output reports, and feature reports. HID-level hotplug is not planned; use `nexus::usb::UsbHotplugMonitor` for device arrival/removal notifications. Higher-level USB abstractions remain separate follow-up work.
 
 ## Report Id Conventions
 
@@ -24,7 +24,7 @@ HID reports are prefixed with a 1-byte report id as mandated by the HID specific
 
 - **Devices without report ids**: the first byte of every report is `0` (the single-report psuedo-id). Callers must still provide it in `write` and `read` return buffers will start with `0`.
 - **Devices with report ids**: the first byte identifies which report descriptor the payload targets. The caller is responsible for setting the correct id in `write` and `send_feature_report`. `read` returns the report id as the first byte of the returned buffer.
-- **Feature reports**: `send_feature_report` requires the report id as the first byte of the buffer, matching the `write` convention. `get_feature_report` takes an explicit `report_id` parameter — the backend prepends it to the request, and the returned buffer starts with that id byte.
+- **Feature reports**: `send_feature_report` requires the report id as the first byte of the buffer, matching the `write` convention. `get_feature_report` takes an explicit `report_id` parameter - the backend prepends it to the request, and the returned buffer starts with that id byte.
 
 ## Feature Reports
 
@@ -32,7 +32,7 @@ Feature reports are bidirectional control transfers that are independent of the 
 
 - `send_feature_report(report)` sends a Set_Report control transfer via `hid_send_feature_report`. The buffer must include the report id as the first byte.
 - `get_feature_report(report_id, max_bytes)` sends a Get_Report control transfer via `hid_get_feature_report`. The `report_id` parameter identifies the report to request. The returned buffer includes the report id as the first byte, followed by the report payload.
-- Feature report transfers may block briefly while the device responds. They do not affect the input report queue — pending `read` calls are not disrupted.
+- Feature report transfers may block briefly while the device responds. They do not affect the input report queue - pending `read` calls are not disrupted.
 
 ## Backend
 
