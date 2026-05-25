@@ -1,5 +1,13 @@
 add_subdirectory(core_status)
 
+if(TARGET nexus::audio)
+    add_subdirectory(audio_probe)
+endif()
+
+if(TARGET nexus::camera)
+    add_subdirectory(camera_probe)
+endif()
+
 if(TARGET nexus::net)
     add_subdirectory(net_tcp_echo)
 endif()

@@ -39,6 +39,16 @@ The capture module supports enumerating input devices, selecting a device by id 
 
 On Windows the backend is WASAPI (`mmdeviceapi.h`, `audioclient.h`) using shared-mode `IAudioClient` with `IAudioCaptureClient` for capture and `IAudioRenderClient` for playback. On Linux the backend is PulseAudio using `libpulse-simple`. These headers are included only from implementation files — users of `nexus_audio` depend on NexusKit headers.
 
+## Example
+
+When `NEXUS_BUILD_EXAMPLES=ON` and `NEXUS_ENABLE_AUDIO=ON`, NexusKit builds `nexus_example_audio_probe`.
+
+```powershell
+nexus_example_audio_probe
+```
+
+The example lists audio input/output devices and default devices. It does not start capture or playback by default.
+
 ## Diagnostics
 
 Device enumeration, capturer/player creation, and capture/playback start/stop events write diagnostic messages through `nexus::log::write`. Install a default logger with `nexus::log::set_default_logger` to capture these events. Frame delivery does not log per-frame diagnostics.

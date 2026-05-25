@@ -28,6 +28,16 @@ The camera capture module supports enumerating USB camera devices, selecting a d
 
 On Windows the backend is libuvc which provides USB Video Class device access. On Linux the backend is V4L2 using `ioctl`-based device enumeration, format negotiation, and mmap buffer streaming from `/dev/video*` nodes. These headers are included only from implementation files — users of `nexus_camera` depend on NexusKit headers.
 
+## Example
+
+When `NEXUS_BUILD_EXAMPLES=ON` and `NEXUS_ENABLE_CAMERA=ON`, NexusKit builds `nexus_example_camera_probe`.
+
+```powershell
+nexus_example_camera_probe
+```
+
+The example lists camera devices and the default camera. It does not open a camera or start frame capture by default.
+
 ## Diagnostics
 
 Device enumeration, capturer creation, and capture start/stop events write diagnostic messages through `nexus::log::write`. Install a default logger with `nexus::log::set_default_logger` to capture these events. Frame delivery does not log per-frame diagnostics.
