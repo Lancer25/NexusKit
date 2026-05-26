@@ -42,9 +42,13 @@ struct FfmpegBackendInfo {
 
 /// Media stream category.
 enum class MediaStreamType {
+    /// Unknown or unsupported stream type.
     unknown,
+    /// Video stream.
     video,
+    /// Audio stream.
     audio,
+    /// Subtitle stream.
     subtitle
 };
 
@@ -147,12 +151,19 @@ struct MediaDecodeOptions {
 
 /// Audio sample formats supported by `convert_audio_frame`.
 enum class AudioSampleFormat {
+    /// Unknown or unsupported sample format.
     unknown,
+    /// Unsigned 8-bit packed samples.
     u8,
+    /// Signed 16-bit packed samples.
     s16,
+    /// Signed 32-bit packed samples.
     s32,
+    /// 32-bit floating-point packed samples.
     flt,
+    /// 64-bit floating-point packed samples.
     dbl,
+    /// 32-bit floating-point planar samples.
     fltp
 };
 
@@ -170,10 +181,15 @@ struct AudioConvertOptions {
 
 /// RGB-family pixel formats supported by `convert_video_frame`.
 enum class VideoPixelFormat {
+    /// Unknown or unsupported pixel format.
     unknown,
+    /// Packed RGB, 8 bits per channel.
     rgb24,
+    /// Packed RGBA, 8 bits per channel.
     rgba,
+    /// Packed BGR, 8 bits per channel.
     bgr24,
+    /// Packed BGRA, 8 bits per channel.
     bgra
 };
 

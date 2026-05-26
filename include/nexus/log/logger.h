@@ -15,12 +15,19 @@ namespace nexus::log {
 
 /// Log severity levels.
 enum class Level {
+    /// Most verbose diagnostic messages.
     trace,
+    /// Debug diagnostics useful during development.
     debug,
+    /// Informational events for normal operation.
     info,
+    /// Recoverable problem or suspicious condition.
     warn,
+    /// Error that prevents the requested operation.
     error,
+    /// Severe failure that may require immediate attention.
     critical,
+    /// Logging disabled.
     off
 };
 

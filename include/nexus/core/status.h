@@ -10,16 +10,27 @@ namespace nexus {
 /// Functions return `Status` or `Result<T>` for errors; exceptions are reserved
 /// for programming bugs (null dereference, invalid Result access, etc.).
 enum class StatusCode {
+    /// Operation completed successfully.
     kOk = 0,
+    /// Operation was cancelled before completion.
     kCancelled,
+    /// Caller supplied an invalid argument.
     kInvalidArgument,
+    /// Requested resource was not found.
     kNotFound,
+    /// Resource already exists.
     kAlreadyExists,
+    /// Caller lacks permission for the operation.
     kPermissionDenied,
+    /// Required resource is exhausted or quota exceeded.
     kResourceExhausted,
+    /// Object or backend is not in the required state.
     kFailedPrecondition,
+    /// Required service, backend, or device is unavailable.
     kUnavailable,
+    /// Internal invariant or backend failure.
     kInternal,
+    /// Failure did not map to a more specific code.
     kUnknown
 };
 
@@ -35,7 +46,7 @@ public:
 
     /// Constructs an error Status from a code and message.
     ///
-    /// @param code Must not be `kOk` — callers should use `ok_status()` for
+    /// @param code Must not be `kOk`; callers should use `ok_status()` for
     /// the success case.
     /// @param message Human-readable diagnostic.
     Status(StatusCode code, std::string message)

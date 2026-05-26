@@ -25,25 +25,45 @@ struct NEXUS_CAMERA_API CameraDevice {
 
 /// Camera control kinds (UVC/V4L2 standard controls).
 enum class NEXUS_CAMERA_API CameraControlKind {
+    /// Image brightness.
     kBrightness = 0,
+    /// Image contrast.
     kContrast,
+    /// Image saturation.
     kSaturation,
+    /// Image hue.
     kHue,
+    /// Edge enhancement or image sharpness.
     kSharpness,
+    /// Gamma correction.
     kGamma,
+    /// White balance color temperature.
     kWhiteBalance,
+    /// Backlight compensation.
     kBacklightCompensation,
+    /// Sensor or analog gain.
     kGain,
+    /// Lens focus position.
     kFocus,
+    /// Optical or digital zoom.
     kZoom,
+    /// Exposure time or exposure value.
     kExposure,
+    /// Iris or aperture position.
     kIris,
+    /// Pan position.
     kPan,
+    /// Tilt position.
     kTilt,
+    /// Roll position.
     kRoll,
+    /// Automatic focus mode.
     kAutoFocus,
+    /// Automatic white balance mode.
     kAutoWhiteBalance,
+    /// Automatic exposure mode.
     kAutoExposure,
+    /// Anti-flicker power line frequency.
     kPowerLineFrequency,
 };
 
