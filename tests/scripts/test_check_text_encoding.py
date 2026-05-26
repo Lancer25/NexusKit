@@ -28,6 +28,42 @@ class TextEncodingChecksTest(unittest.TestCase):
         self.assertEqual(Path("include") / "broken.h", failures[0].path)
         self.assertIn("invalid utf-8", failures[0].reason)
 
+    def test_rejects_text_missing_final_newline(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            path = root / "docs" / "guide.md"
+            path.parent.mkdir()
+            path.write_text("# Guide\nNo final newline", encoding="utf-8")
+
+            failures = scan_tree(root)
+
+        self.assertEqual(1, len(failures))
+        self.assertEqual(Path("docs") / "guide.md", failures[0].path)
+        self.assertIn("missing final newline", failures[0].reason)
+
+    def test_rejects_text_trailing_whitespace(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            path = root / "include" / "example.h"
+            path.parent.mkdir()
+            path.write_text("#pragma once\nint value; \n", encoding="utf-8")
+
+            failures = scan_tree(root)
+
+        self.assertEqual(1, len(failures))
+        self.assertEqual(Path("include") / "example.h", failures[0].path)
+        self.assertIn("line 2", failures[0].reason)
+        self.assertIn("trailing whitespace", failures[0].reason)
+
+    def test_accepts_crlf_text_without_trailing_whitespace(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            path = root / "scripts" / "build.ps1"
+            path.parent.mkdir()
+            path.write_bytes(b"Write-Host 'ok'\r\n")
+
+            self.assertEqual([], scan_tree(root))
+
     def test_ignores_binary_extensions(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

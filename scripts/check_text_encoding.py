@@ -70,6 +70,23 @@ def should_skip(path: Path) -> bool:
     return any(part in SKIP_DIRS for part in path.parts)
 
 
+def _check_text_hygiene(relative: Path, text: str) -> list[EncodingFailure]:
+    failures: list[EncodingFailure] = []
+    if text and not text.endswith("\n"):
+        failures.append(EncodingFailure(relative, "missing final newline"))
+
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        if line.endswith((" ", "\t")):
+            failures.append(
+                EncodingFailure(
+                    relative,
+                    f"line {line_number}: trailing whitespace",
+                )
+            )
+
+    return failures
+
+
 def scan_tree(root: Path) -> list[EncodingFailure]:
     root = root.resolve()
     failures: list[EncodingFailure] = []
@@ -92,6 +109,9 @@ def scan_tree(root: Path) -> list[EncodingFailure]:
             failures.append(
                 EncodingFailure(relative, "contains unicode replacement character")
             )
+            continue
+
+        failures.extend(_check_text_hygiene(relative, text))
 
     return failures
 

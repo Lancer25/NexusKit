@@ -120,8 +120,8 @@ build/phase8k-screen-xrandr-check
 
 ### FFmpeg DLL 找不到
 
-**症状**: 运行 nexus_media_tests.exe 报找不到 DLL（libavutil-*.dll 等）  
-**原因**: FFmpeg DLL 不在 PATH 中  
+**症状**: 运行 nexus_media_tests.exe 报找不到 DLL（libavutil-*.dll 等）<br>
+**原因**: FFmpeg DLL 不在 PATH 中
 **解决**:
 ```powershell
 $env:PATH = "<build-dir>\deps\ffmpeg\bin;$env:PATH"
@@ -130,8 +130,8 @@ $env:PATH = "<build-dir>\deps\ffmpeg\bin;$env:PATH"
 
 ### MSYS2 环境问题
 
-**症状**: `NEXUS_BUILD_FFMPEG=ON` 时配置失败，找不到 bash/make/nasm  
-**原因**: MSYS2 UCRT64 未安装或不在 PATH  
+**症状**: `NEXUS_BUILD_FFMPEG=ON` 时配置失败，找不到 bash/make/nasm<br>
+**原因**: MSYS2 UCRT64 未安装或不在 PATH
 **解决**: 安装 MSYS2 并执行：
 ```powershell
 C:\msys64\usr\bin\bash.exe -lc "pacman -Sy --needed --noconfirm mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-pkgconf make nasm"
@@ -139,8 +139,8 @@ C:\msys64\usr\bin\bash.exe -lc "pacman -Sy --needed --noconfirm mingw-w64-ucrt-x
 
 ### FetchContent 下载失败
 
-**症状**: CMake 配置阶段 Git 克隆超时  
-**原因**: 代理未设置或 SSL 后端不对  
+**症状**: CMake 配置阶段 Git 克隆超时<br>
+**原因**: 代理未设置或 SSL 后端不对
 **解决**:
 ```powershell
 git config --global http.proxy http://proxy.example.com:port
@@ -150,7 +150,7 @@ git config --global http.sslBackend openssl
 
 ### Git SSL 证书错误
 
-**症状**: `SSL certificate problem: unable to get local issuer certificate`  
+**症状**: `SSL certificate problem: unable to get local issuer certificate`
 **解决**:
 ```powershell
 git config --global http.sslVerify false   # 仅临时解决
@@ -159,8 +159,8 @@ git config --global http.sslVerify false   # 仅临时解决
 
 ### 测试超时
 
-**症状**: 某些测试（特别是媒体编码器测试）执行超时  
-**原因**: 编码器测试计算量大，默认 CTest timeout 不满足  
+**症状**: 某些测试（特别是媒体编码器测试）执行超时<br>
+**原因**: 编码器测试计算量大，默认 CTest timeout 不满足
 **解决**: 直接运行测试可执行文件而非通过 ctest，或增加超时：
 ```powershell
 ctest --test-dir build/windows-msvc-debug --timeout 120
@@ -168,8 +168,8 @@ ctest --test-dir build/windows-msvc-debug --timeout 120
 
 ### MSBuild 找不到 target
 
-**症状**: `cmake --build --target nexus_xxx` 报 target 不存在  
-**原因**: 该模块未启用（如 nexus_media 默认 OFF）  
+**症状**: `cmake --build --target nexus_xxx` 报 target 不存在<br>
+**原因**: 该模块未启用（如 nexus_media 默认 OFF）
 **解决**: 重新配置时加上对应选项：
 ```powershell
 cmake -S . -B build/windows-msvc-debug -DNEXUS_ENABLE_MEDIA=ON
