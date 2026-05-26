@@ -23,8 +23,11 @@ class NEXUS_COMMON_API Event {
 public:
     /// Creates an unsignaled event.
     Event();
+    /// Event handles are move-only and cannot be copied.
     Event(const Event&) = delete;
+    /// Event handles are move-only and cannot be copy-assigned.
     Event& operator=(const Event&) = delete;
+    /// Releases the event handle.
     ~Event();
 
     /// Signal the event; all waiting threads are released.
@@ -52,11 +55,17 @@ private:
 /// @endcode
 class NEXUS_COMMON_API Thread {
 public:
+    /// Constructs a stopped thread handle.
     Thread();
+    /// Thread handles are move-only and cannot be copied.
     Thread(const Thread&) = delete;
+    /// Thread handles are move-only and cannot be copy-assigned.
     Thread& operator=(const Thread&) = delete;
+    /// Moves a thread handle.
     Thread(Thread&& other) noexcept;
+    /// Moves a thread handle.
     Thread& operator=(Thread&& other) noexcept;
+    /// Stops and releases the thread handle if needed.
     ~Thread();
 
     /// Start the callback on a new thread.
@@ -72,7 +81,7 @@ public:
 
     /// Synchronous stop; signals stop and joins the thread.
     ///
-    /// Must not be called from within the thread callback — that would cause
+    /// Must not be called from within the thread callback; that would cause
     /// `std::thread::join` to deadlock waiting on itself.
     void stop();
     /// Asynchronous stop request; sets the stop flag without joining.

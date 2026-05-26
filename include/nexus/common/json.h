@@ -33,10 +33,15 @@ class NEXUS_COMMON_API JsonValue {
 public:
     /// Constructs a null JSON value.
     JsonValue();
+    /// Copies a JSON value handle.
     JsonValue(const JsonValue& other);
+    /// Moves a JSON value handle.
     JsonValue(JsonValue&& other) noexcept;
+    /// Copies a JSON value handle.
     JsonValue& operator=(const JsonValue& other);
+    /// Moves a JSON value handle.
     JsonValue& operator=(JsonValue&& other) noexcept;
+    /// Releases this JSON value handle.
     ~JsonValue();
 
     /// Creates an empty JSON object.

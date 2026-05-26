@@ -53,6 +53,7 @@ class NEXUS_LOG_API Logger {
 public:
     /// Constructs an invalid logger (no backend).
     Logger();
+    /// Constructs a logger from an internal backend handle.
     explicit Logger(std::shared_ptr<detail::LoggerBackend> backend);
 
     /// True when this logger has a valid backend.

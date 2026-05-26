@@ -42,6 +42,7 @@ enum class StatusCode {
 /// Status is copyable and movable.  Pass by value, const reference, or move.
 class Status {
 public:
+    /// Constructs an ok Status.
     Status() = default;
 
     /// Constructs an error Status from a code and message.

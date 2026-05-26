@@ -28,15 +28,20 @@ class XmlNode;
 /// document with `dump()`.
 ///
 /// Copy and move are shallow and cheap (shared pointer semantics).  A moved-from
-/// document is empty — `root()` returns `kFailedPrecondition`.
+/// document is empty; `root()` returns `kFailedPrecondition`.
 class NEXUS_COMMON_API XmlDocument {
 public:
     /// Constructs an empty document (no root element).
     XmlDocument();
+    /// Copies an XML document handle.
     XmlDocument(const XmlDocument& other);
+    /// Moves an XML document handle.
     XmlDocument(XmlDocument&& other) noexcept;
+    /// Copies an XML document handle.
     XmlDocument& operator=(const XmlDocument& other);
+    /// Moves an XML document handle.
     XmlDocument& operator=(XmlDocument&& other) noexcept;
+    /// Releases this XML document handle.
     ~XmlDocument();
 
     /// Creates a new document with the given root element.
@@ -77,10 +82,15 @@ class NEXUS_COMMON_API XmlNode {
 public:
     /// Constructs an empty node.
     XmlNode();
+    /// Copies an XML node handle.
     XmlNode(const XmlNode& other);
+    /// Moves an XML node handle.
     XmlNode(XmlNode&& other) noexcept;
+    /// Copies an XML node handle.
     XmlNode& operator=(const XmlNode& other);
+    /// Moves an XML node handle.
     XmlNode& operator=(XmlNode&& other) noexcept;
+    /// Releases this XML node handle.
     ~XmlNode();
 
     /// The element tag name.  Returns an empty string for an empty node.

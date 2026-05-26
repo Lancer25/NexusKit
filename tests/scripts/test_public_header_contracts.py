@@ -22,10 +22,19 @@ ENUMS = {
     },
     "include/nexus/camera/types.h": {"CameraControlKind", "PixelFormat"},
 }
+LIFECYCLE_HEADERS = [
+    "include/nexus/core/result.h",
+    "include/nexus/core/status.h",
+    "include/nexus/log/logger.h",
+    "include/nexus/common/json.h",
+    "include/nexus/common/thread.h",
+    "include/nexus/common/xml.h",
+]
 
 HANDLER_RE = re.compile(r"^\s*using\s+\w*Handler\s*=")
 ENUM_RE = re.compile(r"^\s*enum\s+class\s+(?:NEXUS_\w+_API\s+)?(\w+)\s*\{")
 ENUM_VALUE_RE = re.compile(r"^\s*(\w+)\s*(?:=\s*[^,]+)?\s*,?\s*$")
+CLASS_RE = re.compile(r"^\s*(class|struct)\s+(?:NEXUS_\w+_API\s+)?(\w+)\b")
 
 
 def has_doxygen(lines, index):
@@ -79,6 +88,50 @@ class PublicHeaderContractsTest(unittest.TestCase):
                     missing.append(
                         f"{relative}:{index + 1}: {active_enum}::{match.group(1)}"
                     )
+
+        self.assertEqual([], missing)
+
+    def test_core_log_common_lifecycle_methods_have_doxygen_comments(self):
+        missing = []
+        for relative in LIFECYCLE_HEADERS:
+            path = ROOT / relative
+            lines = path.read_text(encoding="utf-8").splitlines()
+            class_name = None
+            in_public = False
+            brace_depth = 0
+            for index, line in enumerate(lines):
+                stripped = line.strip()
+                if class_name is None:
+                    match = CLASS_RE.match(stripped)
+                    if match and "{" in stripped:
+                        class_name = match.group(2)
+                        in_public = match.group(1) == "struct"
+                        brace_depth = stripped.count("{") - stripped.count("}")
+                    continue
+
+                brace_depth += stripped.count("{") - stripped.count("}")
+                if brace_depth <= 0:
+                    class_name = None
+                    in_public = False
+                    continue
+
+                if stripped == "public:":
+                    in_public = True
+                    continue
+                if stripped in ("private:", "protected:"):
+                    in_public = False
+                    continue
+                if not in_public:
+                    continue
+
+                is_lifecycle = (
+                    re.match(rf"^(?:explicit\s+)?{class_name}\s*\(", stripped)
+                    or re.match(rf"^{class_name}\s*\(", stripped)
+                    or re.match(rf"^~{class_name}\s*\(", stripped)
+                    or re.match(rf"^{class_name}&\s+operator=\s*\(", stripped)
+                )
+                if is_lifecycle and not has_doxygen(lines, index):
+                    missing.append(f"{relative}:{index + 1}: {class_name}: {stripped}")
 
         self.assertEqual([], missing)
 
