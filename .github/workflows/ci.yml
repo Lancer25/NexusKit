@@ -5,6 +5,13 @@ on:
     branches: [master, main]
   pull_request:
     branches: [master, main]
+  workflow_dispatch:
+    inputs:
+      run_release_build:
+        description: "Run Windows/Linux Release build and install smoke checks"
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   docs:
@@ -30,6 +37,7 @@ jobs:
 
   default-build:
     name: ${{ matrix.name }}
+    if: github.event_name == 'workflow_dispatch' && inputs.run_release_build
     runs-on: ${{ matrix.os }}
 
     strategy:
