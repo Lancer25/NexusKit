@@ -32,6 +32,7 @@ jobs:
 
       - name: Run documentation checks
         run: |
+          python scripts/check_text_encoding.py --dir .
           python scripts/check_release_docs.py --dir .
           python scripts/check_public_comments.py --dir .
 
