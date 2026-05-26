@@ -72,11 +72,26 @@ struct HttpClientOptions {
 /// move transfers ownership.
 ///
 /// Synchronous methods (`get`, `post`, `put`, `del`) may block on
-/// network I/O.  Async overloads execute on a background worker thread
-/// and deliver results via callbacks on that thread.
+/// network I/O.  Async overloads normally complete on a background worker
+/// thread, while immediate precondition failures may invoke callbacks
+/// synchronously before the async method returns.
 class NEXUS_NET_API HttpClient {
 public:
+    /// Completion callback for async HTTP requests.
+    ///
+    /// Invoked once per async request. Normal completion is delivered on the
+    /// shared HTTP worker thread; an already-closed client may invoke the
+    /// handler synchronously before the async method returns. Receives an
+    /// `HttpResponse` for completed exchanges, including non-2xx status codes,
+    /// or an error Result for closed clients, redirect-limit failures,
+    /// connection failures, timeouts, cancellation, and backend errors.
     using RequestHandler = std::function<void(Result<HttpResponse>)>;
+    /// Completion callback for `async_close`.
+    ///
+    /// Invoked at most once when a handler is supplied. If the client is
+    /// already closed, the handler may be invoked synchronously before
+    /// `async_close` returns; otherwise it is posted to the shared HTTP worker
+    /// thread. Close is idempotent and currently reports OK.
     using CloseHandler   = std::function<void(Status)>;
 
     /// Copies share the underlying state and start a shared worker thread.

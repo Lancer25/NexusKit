@@ -49,13 +49,41 @@ struct UdpReceiveOptions {
 /// `async_bind(local, handler)`.  Copy is deleted; move transfers ownership.
 /// A moved-from socket is closed and `is_open()` returns false.
 ///
-/// Sync methods block; async methods deliver results via callbacks on an
-/// internal worker thread.
+/// Sync methods block. Async methods normally complete on the internal worker
+/// thread, while validation or immediate precondition failures may invoke
+/// callbacks synchronously before the async method returns.
 class NEXUS_NET_API UdpSocket {
 public:
+    /// Completion callback for `async_bind`.
+    ///
+    /// Invoked once per async bind operation. Normal completion is delivered
+    /// on the internal UDP worker thread; immediate closed or invalid-endpoint
+    /// failures may be delivered synchronously before `async_bind` returns.
+    /// Receives OK after the socket is bound, or an error Status for invalid
+    /// endpoints, closed sockets, or bind failures.
     using BindHandler    = std::function<void(Status)>;
+    /// Completion callback for `async_send_to`.
+    ///
+    /// Invoked once per async send operation when a non-empty handler is
+    /// supplied. Immediate closed, not-bound, or invalid-remote failures may be
+    /// delivered synchronously before `async_send_to` returns; normal send
+    /// completion is delivered on the internal UDP worker thread. The datagram
+    /// payload is copied before the call returns.
     using SendHandler    = std::function<void(Result<std::size_t>)>;
+    /// Completion callback for `async_receive_from`.
+    ///
+    /// Invoked once per async receive operation when a non-empty handler is
+    /// supplied. Immediate closed or not-bound failures may be delivered
+    /// synchronously before `async_receive_from` returns; normal receive
+    /// completion is delivered on the internal UDP worker thread. Successful
+    /// datagrams contain copied payload bytes and sender endpoint metadata.
     using ReceiveHandler = std::function<void(Result<UdpDatagram>)>;
+    /// Completion callback for `async_close`.
+    ///
+    /// Invoked at most once when a handler is supplied. If the socket is
+    /// already closed, the handler may be invoked synchronously before
+    /// `async_close` returns; otherwise it is posted to the internal UDP worker
+    /// thread. Close is idempotent and currently reports OK.
     using CloseHandler   = std::function<void(Status)>;
 
     /// Creates a UDP socket with a running worker thread (no bind).

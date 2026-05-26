@@ -35,6 +35,10 @@ struct TcpListenOptions {
 class NEXUS_NET_API TcpListener {
 public:
     /// Callback type for accepted connections.
+    ///
+    /// Invoked exactly once on the listener worker thread for each
+    /// `async_accept` call. Receives a connected `TcpClient` on success or an
+    /// error Result when the listener is closed or the accept operation fails.
     using AcceptHandler = std::function<void(Result<TcpClient>)>;
 
     /// Creates a listener bound to `endpoint`.

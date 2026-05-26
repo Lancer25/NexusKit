@@ -42,13 +42,42 @@ struct WebSocketClientOptions {
 /// `async_connect(url, handler)`.  Copy is deleted; move transfers ownership.
 /// A moved-from client is closed and `is_open()` returns false.
 ///
-/// Supports text frames only.  Sync methods block; async methods deliver
-/// results via callbacks on websocketpp's internal event-loop thread.
+/// Supports text frames only.  Sync methods block. Network event paths run on
+/// websocketpp's internal event-loop thread; validation and immediate
+/// completion paths may invoke callbacks synchronously before the async method
+/// returns.
 class NEXUS_NET_API WebSocketClient {
 public:
+    /// Completion callback for `async_connect`.
+    ///
+    /// Invoked at most once. Malformed URLs, closed clients, or connection
+    /// creation errors may invoke the handler synchronously before
+    /// `async_connect` returns; WebSocket open/fail events invoke it on the
+    /// event-loop thread. Receives OK after handshake, `kInvalidArgument` for
+    /// malformed URLs, `kFailedPrecondition` when closed, or `kUnavailable` for
+    /// setup and connection failures.
     using ConnectHandler = std::function<void(Status)>;
+    /// Completion callback for `async_send_text`.
+    ///
+    /// Invoked exactly once after websocketpp accepts or rejects queueing the
+    /// frame; the current implementation invokes it synchronously before
+    /// `async_send_text` returns. Receives OK when queued, `kFailedPrecondition`
+    /// when not open, or `kUnavailable` for send errors. Message bytes are
+    /// copied before the call returns.
     using SendHandler    = std::function<void(Status)>;
+    /// Completion callback for `async_receive_text`.
+    ///
+    /// Invoked at most once for this receive request. Already queued messages
+    /// and already-closed clients may invoke the handler synchronously before
+    /// `async_receive_text` returns; otherwise the next text frame invokes it on
+    /// the event-loop thread. Successful Results own the message payload.
     using MessageHandler = std::function<void(Result<std::string>)>;
+    /// Completion callback for `async_close`.
+    ///
+    /// Invoked exactly once in the current implementation. Already closed
+    /// clients and immediate close paths may invoke the handler synchronously
+    /// before `async_close` returns. Reports OK for idempotent or successful
+    /// close, or `kUnavailable` for close errors.
     using CloseHandler   = std::function<void(Status)>;
 
     /// Creates a client with a running event-loop thread (no connection).

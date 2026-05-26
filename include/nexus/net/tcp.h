@@ -57,13 +57,44 @@ struct TcpIoOptions {
 /// and `is_open()` returns false.
 ///
 /// Sync methods block the caller until the operation completes.
-/// Async methods post work to an internal `asio::io_context` and deliver
-/// results via callbacks on the background worker thread.
+/// Async methods normally complete on the internal `asio::io_context` worker
+/// thread. Validation or immediate precondition failures may invoke callbacks
+/// synchronously before the async method returns.
 class NEXUS_NET_API TcpClient {
 public:
+    /// Completion callback for `async_connect`.
+    ///
+    /// Invoked once per accepted async connect operation. Normal completion is
+    /// delivered on the internal TCP worker thread; immediate precondition or
+    /// argument failures may be delivered synchronously before `async_connect`
+    /// returns. Receives OK after the socket is connected, `kInvalidArgument`
+    /// for an empty host or zero port, `kFailedPrecondition` when the client is
+    /// closed, or `kUnavailable` for resolve/connect failure or timeout.
     using ConnectHandler = std::function<void(Status)>;
+    /// Completion callback for `async_write_all`.
+    ///
+    /// Invoked once per accepted async write operation. Normal completion is
+    /// delivered on the internal TCP worker thread; immediate closed or
+    /// not-connected failures may be delivered synchronously before
+    /// `async_write_all` returns. Receives OK only after all bytes have been
+    /// written, or an error Status for closed sockets, socket errors, or write
+    /// timeouts. The input bytes are copied before the call returns.
     using WriteHandler   = std::function<void(Status)>;
+    /// Completion callback for `async_read_some`.
+    ///
+    /// Invoked once per accepted async read operation. Normal completion is
+    /// delivered on the internal TCP worker thread; immediate closed or
+    /// not-connected failures may be delivered synchronously before
+    /// `async_read_some` returns. A successful empty string means graceful
+    /// remote EOF. Error Results report closed sockets, socket errors, or read
+    /// timeouts. The result string owns its storage.
     using ReadHandler    = std::function<void(Result<std::string>)>;
+    /// Completion callback for `async_close`.
+    ///
+    /// Invoked at most once when a handler is supplied. If the client is
+    /// already closed, the handler may be invoked synchronously before
+    /// `async_close` returns; otherwise it is posted to the internal TCP worker
+    /// thread. Close is idempotent and currently reports OK.
     using CloseHandler   = std::function<void(Status)>;
 
     /// Creates a client with a running worker thread (no connection).
