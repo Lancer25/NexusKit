@@ -52,7 +52,7 @@ HANDLER_RE = re.compile(r"^\s*using\s+\w*Handler\s*=")
 ENUM_RE = re.compile(r"^\s*enum\s+class\s+(?:NEXUS_\w+_API\s+)?(\w+)\s*\{")
 ENUM_VALUE_RE = re.compile(r"^\s*(\w+)\s*(?:=\s*[^,]+)?\s*,?\s*$")
 CLASS_RE = re.compile(r"^\s*(class|struct)\s+(?:NEXUS_\w+_API\s+)?(\w+)\b")
-DASH_PUNCTUATION = ("—", "–")
+DASH_PUNCTUATION = ("\u2014", "\u2013")
 
 
 def has_doxygen(lines: list[str], index: int) -> bool:
@@ -173,10 +173,14 @@ def check_public_header_dash_punctuation(root: Path) -> list[str]:
 def check_repo(root: Path) -> list[str]:
     root = root.resolve()
     messages = []
-    messages.extend(check_net_callback_typedefs(root))
-    messages.extend(check_tracked_enum_values(root))
-    messages.extend(check_tracked_lifecycle_methods(root))
-    messages.extend(check_public_header_dash_punctuation(root))
+    checks = [
+        ("callback-typedefs", check_net_callback_typedefs),
+        ("enum-values", check_tracked_enum_values),
+        ("lifecycle", check_tracked_lifecycle_methods),
+        ("dash-punctuation", check_public_header_dash_punctuation),
+    ]
+    for category, check in checks:
+        messages.extend(f"{category}: {message}" for message in check(root))
     return messages
 
 

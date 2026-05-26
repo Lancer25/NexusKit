@@ -11,12 +11,12 @@ class PublicHeaderContractsCheckerTest(unittest.TestCase):
             root = Path(tmp)
             header = root / "include" / "nexus" / "common" / "example.h"
             header.parent.mkdir(parents=True)
-            header.write_text("/// bad dash — here\n", encoding="utf-8")
+            header.write_bytes(b"/// bad dash \xe2\x80\x94 here\n")
 
             messages = check_repo(root)
 
         self.assertEqual(
-            ["include/nexus/common/example.h:1: public header uses non-ASCII dash punctuation"],
+            ["dash-punctuation: include/nexus/common/example.h:1: public header uses non-ASCII dash punctuation"],
             messages,
         )
 
