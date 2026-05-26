@@ -33,7 +33,7 @@ struct TcpEndpoint {
 
 /// Options for `TcpClient::connect`.
 ///
-/// Set `timeout` to 0 (default) for no explicit timeout — the connect call
+/// Set `timeout` to 0 (default) for no explicit timeout; the connect call
 /// will block until the OS-level TCP handshake succeeds or fails.
 struct TcpConnectOptions {
     /// Connection timeout.  0 means no explicit timeout.
@@ -42,7 +42,7 @@ struct TcpConnectOptions {
 
 /// Options for TcpClient read and write operations.
 ///
-/// Set `timeout` to 0 (default) for no explicit timeout — the I/O call
+/// Set `timeout` to 0 (default) for no explicit timeout; the I/O call
 /// will block until data is transferred or the socket errors.
 struct TcpIoOptions {
     /// I/O timeout.  0 means no explicit timeout.
@@ -126,9 +126,13 @@ public:
         const TcpEndpoint& endpoint,
         const TcpConnectOptions& options);
 
+    /// TCP clients are move-only and cannot be copied.
     TcpClient(const TcpClient&) = delete;
+    /// TCP clients are move-only and cannot be copy-assigned.
     TcpClient& operator=(const TcpClient&) = delete;
+    /// Moves a client handle.
     TcpClient(TcpClient&& other) noexcept;
+    /// Moves a client handle.
     TcpClient& operator=(TcpClient&& other) noexcept;
     /// Stops the worker and closes the socket if open.
     ~TcpClient();

@@ -100,9 +100,13 @@ public:
     /// @retval kUnavailable when binding fails.
     static Result<UdpSocket> bind(const UdpEndpoint& local);
 
+    /// UDP sockets are move-only and cannot be copied.
     UdpSocket(const UdpSocket&) = delete;
+    /// UDP sockets are move-only and cannot be copy-assigned.
     UdpSocket& operator=(const UdpSocket&) = delete;
+    /// Moves a socket handle.
     UdpSocket(UdpSocket&& other) noexcept;
+    /// Moves a socket handle.
     UdpSocket& operator=(UdpSocket&& other) noexcept;
     /// Closes the socket if open.
     ~UdpSocket();

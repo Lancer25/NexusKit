@@ -99,9 +99,13 @@ public:
         std::string url,
         WebSocketClientOptions options = {});
 
+    /// WebSocket clients are move-only and cannot be copied.
     WebSocketClient(const WebSocketClient&) = delete;
+    /// WebSocket clients are move-only and cannot be copy-assigned.
     WebSocketClient& operator=(const WebSocketClient&) = delete;
+    /// Moves a client handle.
     WebSocketClient(WebSocketClient&& other) noexcept;
+    /// Moves a client handle.
     WebSocketClient& operator=(WebSocketClient&& other) noexcept;
     /// Closes the connection if open.
     ~WebSocketClient();

@@ -96,9 +96,13 @@ public:
     /// @retval kInternal when the worker thread fails to start.
     static Result<WebSocketServer> create(WebSocketServerOptions options = {});
 
+    /// WebSocket servers are move-only and cannot be copied.
     WebSocketServer(const WebSocketServer&) = delete;
+    /// WebSocket servers are move-only and cannot be copy-assigned.
     WebSocketServer& operator=(const WebSocketServer&) = delete;
+    /// Moves a server handle.
     WebSocketServer(WebSocketServer&& other) noexcept;
+    /// Moves a server handle.
     WebSocketServer& operator=(WebSocketServer&& other) noexcept;
     /// Closes all connections and stops the event loop.
     ~WebSocketServer();

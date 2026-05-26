@@ -96,9 +96,13 @@ public:
 
     /// Copies share the underlying state and start a shared worker thread.
     HttpClient(const HttpClient& other);
+    /// Moves an HTTP client handle.
     HttpClient(HttpClient&& other) noexcept;
+    /// Copies share the underlying state.
     HttpClient& operator=(const HttpClient& other);
+    /// Moves an HTTP client handle.
     HttpClient& operator=(HttpClient&& other) noexcept;
+    /// Closes the client if open.
     ~HttpClient();
 
     /// Creates an HTTP client for the given base URL.

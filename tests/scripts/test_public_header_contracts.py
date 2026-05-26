@@ -38,6 +38,12 @@ LIFECYCLE_HEADERS = [
     "include/nexus/audio/player.h",
     "include/nexus/camera/capturer.h",
     "include/nexus/hid/hid.h",
+    "include/nexus/net/tcp.h",
+    "include/nexus/net/tcp_listener.h",
+    "include/nexus/net/udp.h",
+    "include/nexus/net/http.h",
+    "include/nexus/net/websocket_client.h",
+    "include/nexus/net/websocket_server.h",
 ]
 
 HANDLER_RE = re.compile(r"^\s*using\s+\w*Handler\s*=")

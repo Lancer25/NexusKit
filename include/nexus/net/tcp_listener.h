@@ -50,9 +50,13 @@ public:
         const TcpEndpoint& endpoint,
         const TcpListenOptions& options = {});
 
+    /// TCP listeners are move-only and cannot be copied.
     TcpListener(const TcpListener&) = delete;
+    /// TCP listeners are move-only and cannot be copy-assigned.
     TcpListener& operator=(const TcpListener&) = delete;
+    /// Moves a listener handle.
     TcpListener(TcpListener&& other) noexcept;
+    /// Moves a listener handle.
     TcpListener& operator=(TcpListener&& other) noexcept;
     /// Stops the worker and closes the acceptor.
     ~TcpListener();
