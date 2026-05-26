@@ -58,6 +58,8 @@ cmake --preset windows-msvc-release -B build/windows-msvc-release `
         root,
         "docs/iteration.md",
         "Phase 13E-13K: Repository text and documentation hygiene checks.\n"
+        "Commit and push to `master` unless the active task says otherwise.\n"
+        "Continue directly on `master` unless the user requests a branch.\n"
         "Do not add HID-level hotplug support unless the product requirement changes.\n",
     )
     write_file(
@@ -136,12 +138,29 @@ cmake --preset windows-msvc-release `
             write_file(
                 tmp,
                 "docs/iteration.md",
+                "Commit and push to `master` unless the active task says otherwise.\n"
                 "Do not add HID-level hotplug support unless the product requirement changes.\n",
             )
 
             messages = check_release_docs.check_repo(Path(tmp))
 
         self.assertTrue(any("Phase 13E-13K" in message for message in messages))
+
+    def test_rejects_iteration_defaulting_to_main_branch(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            minimal_repo(tmp)
+            write_file(
+                tmp,
+                "docs/iteration.md",
+                "Phase 13E-13K: Repository text and documentation hygiene checks.\n"
+                "Commit and push to `main` unless the active task says otherwise.\n"
+                "Continue directly on `main` unless the user requests a branch.\n"
+                "Do not add HID-level hotplug support unless the product requirement changes.\n",
+            )
+
+            messages = check_release_docs.check_repo(Path(tmp))
+
+        self.assertTrue(any("master" in message for message in messages))
 
 
 if __name__ == "__main__":

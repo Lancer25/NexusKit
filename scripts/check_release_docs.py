@@ -141,6 +141,18 @@ def _check_iteration_hygiene_summary(root):
     ]
 
 
+def _check_iteration_branch_guidance(root):
+    relative = "docs/iteration.md"
+    messages = []
+    for idx, line in enumerate(_read_lines(root, relative), start=1):
+        lowered = line.lower()
+        if "commit and push to `main`" in lowered or "continue directly on `main`" in lowered:
+            messages.append(
+                _message(relative, idx, "default direct-work branch must be `master`")
+            )
+    return messages
+
+
 def check_repo(root):
     root = Path(root)
     messages = []
@@ -157,6 +169,7 @@ def check_repo(root):
     messages.extend(_check_screen_default(root))
     messages.extend(_check_hid_hotplug(root))
     messages.extend(_check_iteration_hygiene_summary(root))
+    messages.extend(_check_iteration_branch_guidance(root))
     return messages
 
 

@@ -14,11 +14,11 @@ Each implementation phase should be small, testable, and documented.
 6. Update module docs, README, architecture docs, build docs, and changelog when relevant.
 7. Run focused tests.
 8. Run a fresh focused configure/build/test/install verification when behavior or build surface changes.
-9. Commit and push to `main` unless the active task says otherwise.
+9. Commit and push to `master` unless the active task says otherwise.
 
 ## Project Rules
 
-- Continue directly on `main` unless the user requests a branch.
+- Continue directly on `master` unless the user requests a branch.
 - Do not revert unrelated local changes.
 - Public headers must stay free of backend-private platform and third-party headers.
 - New APIs must include public header comments following `docs/api-style.md`.
