@@ -28,6 +28,19 @@ class TextEncodingChecksTest(unittest.TestCase):
         self.assertEqual(Path("include") / "broken.h", failures[0].path)
         self.assertIn("invalid utf-8", failures[0].reason)
 
+    def test_rejects_utf8_bom_text(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            path = root / "docs" / "bom.md"
+            path.parent.mkdir()
+            path.write_bytes(b"\xef\xbb\xbf# Guide\n")
+
+            failures = scan_tree(root)
+
+        self.assertEqual(1, len(failures))
+        self.assertEqual(Path("docs") / "bom.md", failures[0].path)
+        self.assertIn("utf-8 bom", failures[0].reason)
+
     def test_rejects_text_missing_final_newline(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

@@ -98,6 +98,10 @@ def scan_tree(root: Path) -> list[EncodingFailure]:
             continue
 
         data = path.read_bytes()
+        if data.startswith(b"\xef\xbb\xbf"):
+            failures.append(EncodingFailure(relative, "contains utf-8 bom"))
+            continue
+
         try:
             text = data.decode("utf-8")
         except UnicodeDecodeError as exc:
