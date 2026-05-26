@@ -49,6 +49,7 @@ LIFECYCLE_HEADERS = [
 ]
 
 HANDLER_RE = re.compile(r"^\s*using\s+\w*Handler\s*=")
+HANDLER_NAME_RE = re.compile(r"^\s*using\s+(\w*Handler)\s*=")
 ENUM_RE = re.compile(r"^\s*enum\s+class\s+(?:NEXUS_\w+_API\s+)?(\w+)\s*\{")
 ENUM_VALUE_RE = re.compile(r"^\s*(\w+)\s*(?:=\s*[^,]+)?\s*,?\s*$")
 CLASS_RE = re.compile(r"^\s*(class|struct)\s+(?:NEXUS_\w+_API\s+)?(\w+)\b")
@@ -66,6 +67,21 @@ def has_doxygen(lines: list[str], index: int) -> bool:
     return False
 
 
+def doxygen_block(lines: list[str], index: int) -> list[str]:
+    block = []
+    for probe in range(index - 1, max(index - 12, -1), -1):
+        stripped = lines[probe].strip()
+        if stripped.startswith("///"):
+            block.append(stripped[3:].strip())
+            continue
+        if not stripped:
+            if block:
+                continue
+            continue
+        break
+    return list(reversed(block))
+
+
 def check_net_callback_typedefs(root: Path) -> list[str]:
     messages = []
     for relative in NET_HEADERS:
@@ -76,6 +92,27 @@ def check_net_callback_typedefs(root: Path) -> list[str]:
         for index, line in enumerate(lines):
             if HANDLER_RE.match(line) and not has_doxygen(lines, index):
                 messages.append(f"{relative}:{index + 1}: {line.strip()}")
+    return messages
+
+
+def check_net_callback_threading_contracts(root: Path) -> list[str]:
+    messages = []
+    contract_tokens = ("thread", "synchronous", "synchronously")
+    for relative in NET_HEADERS:
+        path = root / relative
+        if not path.exists():
+            continue
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for index, line in enumerate(lines):
+            match = HANDLER_NAME_RE.match(line)
+            if not match:
+                continue
+            comment = " ".join(doxygen_block(lines, index)).lower()
+            if not any(token in comment for token in contract_tokens):
+                messages.append(
+                    f"{relative}:{index + 1}: {match.group(1)} "
+                    "missing threading or synchronous invocation contract"
+                )
     return messages
 
 
@@ -175,6 +212,7 @@ def check_repo(root: Path) -> list[str]:
     messages = []
     checks = [
         ("callback-typedefs", check_net_callback_typedefs),
+        ("callback-threading", check_net_callback_threading_contracts),
         ("enum-values", check_tracked_enum_values),
         ("lifecycle", check_tracked_lifecycle_methods),
         ("dash-punctuation", check_public_header_dash_punctuation),

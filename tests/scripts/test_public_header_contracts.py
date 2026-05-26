@@ -13,6 +13,12 @@ class PublicHeaderContractsTest(unittest.TestCase):
             check_public_header_contracts.check_net_callback_typedefs(Path(".")),
         )
 
+    def test_net_callback_typedefs_document_threading_contracts(self):
+        self.assertEqual(
+            [],
+            check_public_header_contracts.check_net_callback_threading_contracts(Path(".")),
+        )
+
     def test_tracked_enum_values_have_doxygen_comments(self):
         self.assertEqual(
             [],
