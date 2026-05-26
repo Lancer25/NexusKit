@@ -234,10 +234,15 @@ class NEXUS_MEDIA_API MediaEncoder {
 public:
     /// Constructs a closed encoder.
     MediaEncoder();
+    /// Media encoders are move-only and cannot be copied.
     MediaEncoder(const MediaEncoder&) = delete;
+    /// Media encoders are move-only and cannot be copy-assigned.
     MediaEncoder& operator=(const MediaEncoder&) = delete;
+    /// Moves an encoder handle.
     MediaEncoder(MediaEncoder&& other) noexcept;
+    /// Moves an encoder handle.
     MediaEncoder& operator=(MediaEncoder&& other) noexcept;
+    /// Closes the encoder if open.
     ~MediaEncoder();
 
     /// Opens an encoder with the given configuration.
@@ -310,10 +315,15 @@ class NEXUS_MEDIA_API MediaMuxer {
 public:
     /// Constructs a closed muxer.
     MediaMuxer();
+    /// Media muxers are move-only and cannot be copied.
     MediaMuxer(const MediaMuxer&) = delete;
+    /// Media muxers are move-only and cannot be copy-assigned.
     MediaMuxer& operator=(const MediaMuxer&) = delete;
+    /// Moves a muxer handle.
     MediaMuxer(MediaMuxer&& other) noexcept;
+    /// Moves a muxer handle.
     MediaMuxer& operator=(MediaMuxer&& other) noexcept;
+    /// Closes the muxer if open.
     ~MediaMuxer();
 
     /// Opens a muxer for writing to `path`.
@@ -453,9 +463,13 @@ class NEXUS_MEDIA_API MediaReader {
 public:
     /// Constructs a closed reader.
     MediaReader();
+    /// Media readers are move-only and cannot be copied.
     MediaReader(const MediaReader&) = delete;
+    /// Media readers are move-only and cannot be copy-assigned.
     MediaReader& operator=(const MediaReader&) = delete;
+    /// Moves a reader handle.
     MediaReader(MediaReader&& other) noexcept;
+    /// Moves a reader handle.
     MediaReader& operator=(MediaReader&& other) noexcept;
     /// Closes the reader if open.
     ~MediaReader();
@@ -506,9 +520,13 @@ class NEXUS_MEDIA_API MediaDecoder {
 public:
     /// Constructs a closed decoder.
     MediaDecoder();
+    /// Media decoders are move-only and cannot be copied.
     MediaDecoder(const MediaDecoder&) = delete;
+    /// Media decoders are move-only and cannot be copy-assigned.
     MediaDecoder& operator=(const MediaDecoder&) = delete;
+    /// Moves a decoder handle.
     MediaDecoder(MediaDecoder&& other) noexcept;
+    /// Moves a decoder handle.
     MediaDecoder& operator=(MediaDecoder&& other) noexcept;
     /// Closes the decoder if open.
     ~MediaDecoder();

@@ -82,9 +82,13 @@ class NEXUS_USB_API UsbDevice {
 public:
     /// Constructs a closed device.
     UsbDevice();
+    /// USB devices are move-only and cannot be copied.
     UsbDevice(const UsbDevice&) = delete;
+    /// USB devices are move-only and cannot be copy-assigned.
     UsbDevice& operator=(const UsbDevice&) = delete;
+    /// Moves a device handle.
     UsbDevice(UsbDevice&& other) noexcept;
+    /// Moves a device handle.
     UsbDevice& operator=(UsbDevice&& other) noexcept;
     /// Closes the device if open.
     ~UsbDevice();
@@ -174,10 +178,15 @@ class NEXUS_USB_API UsbHotplugMonitor {
 public:
     /// Constructs a stopped monitor.
     UsbHotplugMonitor();
+    /// Hotplug monitors are move-only and cannot be copied.
     UsbHotplugMonitor(const UsbHotplugMonitor&) = delete;
+    /// Hotplug monitors are move-only and cannot be copy-assigned.
     UsbHotplugMonitor& operator=(const UsbHotplugMonitor&) = delete;
+    /// Moves a monitor handle.
     UsbHotplugMonitor(UsbHotplugMonitor&& other) noexcept;
+    /// Moves a monitor handle.
     UsbHotplugMonitor& operator=(UsbHotplugMonitor&& other) noexcept;
+    /// Stops the monitor if running.
     ~UsbHotplugMonitor();
 
     /// Starts monitoring USB device hotplug events.

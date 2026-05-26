@@ -29,6 +29,9 @@ LIFECYCLE_HEADERS = [
     "include/nexus/common/json.h",
     "include/nexus/common/thread.h",
     "include/nexus/common/xml.h",
+    "include/nexus/media/media.h",
+    "include/nexus/screen/screen.h",
+    "include/nexus/usb/usb.h",
 ]
 
 HANDLER_RE = re.compile(r"^\s*using\s+\w*Handler\s*=")
@@ -91,7 +94,7 @@ class PublicHeaderContractsTest(unittest.TestCase):
 
         self.assertEqual([], missing)
 
-    def test_core_log_common_lifecycle_methods_have_doxygen_comments(self):
+    def test_tracked_public_lifecycle_methods_have_doxygen_comments(self):
         missing = []
         for relative in LIFECYCLE_HEADERS:
             path = ROOT / relative

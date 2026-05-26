@@ -166,9 +166,13 @@ class NEXUS_SCREEN_API ScreenCapturer {
 public:
     /// Constructs a closed capturer.
     ScreenCapturer();
+    /// Screen capturers are move-only and cannot be copied.
     ScreenCapturer(const ScreenCapturer&) = delete;
+    /// Screen capturers are move-only and cannot be copy-assigned.
     ScreenCapturer& operator=(const ScreenCapturer&) = delete;
+    /// Moves a capturer handle.
     ScreenCapturer(ScreenCapturer&& other) noexcept;
+    /// Moves a capturer handle.
     ScreenCapturer& operator=(ScreenCapturer&& other) noexcept;
     /// Closes the capturer if open.
     ~ScreenCapturer();
