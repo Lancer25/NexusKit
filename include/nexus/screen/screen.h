@@ -36,6 +36,7 @@ struct ScreenBackendInfo {
 
 /// Screen frame pixel formats.
 enum class ScreenPixelFormat {
+    /// Unknown or unsupported pixel format.
     unknown,
     /// BGRA 8-bit, 4 bytes per pixel, rows are contiguous.
     bgra,

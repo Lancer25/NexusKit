@@ -20,6 +20,8 @@ ENUMS = {
         "MediaStreamType",
         "VideoPixelFormat",
     },
+    "include/nexus/screen/screen.h": {"ScreenPixelFormat"},
+    "include/nexus/usb/usb.h": {"UsbTransport"},
     "include/nexus/camera/types.h": {"CameraControlKind", "PixelFormat"},
 }
 LIFECYCLE_HEADERS = [
@@ -35,6 +37,7 @@ LIFECYCLE_HEADERS = [
     "include/nexus/audio/capturer.h",
     "include/nexus/audio/player.h",
     "include/nexus/camera/capturer.h",
+    "include/nexus/hid/hid.h",
 ]
 
 HANDLER_RE = re.compile(r"^\s*using\s+\w*Handler\s*=")

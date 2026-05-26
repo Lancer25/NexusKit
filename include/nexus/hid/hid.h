@@ -72,9 +72,13 @@ class NEXUS_HID_API HidDevice {
 public:
     /// Constructs a closed device.
     HidDevice();
+    /// HID devices are move-only and cannot be copied.
     HidDevice(const HidDevice&) = delete;
+    /// HID devices are move-only and cannot be copy-assigned.
     HidDevice& operator=(const HidDevice&) = delete;
+    /// Moves a device handle.
     HidDevice(HidDevice&& other) noexcept;
+    /// Moves a device handle.
     HidDevice& operator=(HidDevice&& other) noexcept;
     /// Closes the device if open.
     ~HidDevice();
