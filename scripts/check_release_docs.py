@@ -153,6 +153,23 @@ def _check_iteration_branch_guidance(root):
     return messages
 
 
+def _check_iteration_stale_roadmap(root):
+    relative = "docs/iteration.md"
+    messages = []
+    in_roadmap = False
+    for idx, line in enumerate(_read_lines(root, relative), start=1):
+        if line.startswith("## Near-Term Roadmap"):
+            in_roadmap = True
+            continue
+        if in_roadmap and line.startswith("## "):
+            in_roadmap = False
+        if in_roadmap and line.lstrip().startswith("- Phase 13C:"):
+            messages.append(
+                _message(relative, idx, "Phase 13C is completed; do not list it as future roadmap work")
+            )
+    return messages
+
+
 def check_repo(root):
     root = Path(root)
     messages = []
@@ -170,6 +187,7 @@ def check_repo(root):
     messages.extend(_check_hid_hotplug(root))
     messages.extend(_check_iteration_hygiene_summary(root))
     messages.extend(_check_iteration_branch_guidance(root))
+    messages.extend(_check_iteration_stale_roadmap(root))
     return messages
 
 

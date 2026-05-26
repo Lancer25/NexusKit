@@ -66,7 +66,7 @@ Each implementation phase should be small, testable, and documented.
 
 - Phase 13A: Add a CI/build matrix and packaging checks for default, optional-module, and release configurations.
 - Phase 13B: Fill example coverage for modules with stable public APIs, starting with media mux/remux workflows and audio/camera smoke examples.
-- Phase 13C: Audit public API comments and contracts across all modules, including callback threading, ownership, timeout, and error semantics.
+- Phase 14A: Extend public API contract checks for ownership, threading, timeout, and error semantics beyond the completed Phase 13C-13D comment coverage.
 
 ### Media Follow-Ups
 
