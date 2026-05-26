@@ -16,6 +16,7 @@ class UnifiedDocsChecksTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             with mock.patch.object(check_docs.check_text_encoding, "scan_tree", return_value=[]), \
+                 mock.patch.object(check_docs.check_text_encoding, "check_text_policy", return_value=[]), \
                  mock.patch.object(check_docs.check_release_docs, "check_repo", return_value=[]), \
                  mock.patch.object(check_docs, "_check_public_comments", return_value=[]), \
                  mock.patch.object(check_docs.check_public_header_contracts, "check_repo", return_value=[]):
@@ -35,6 +36,8 @@ class UnifiedDocsChecksTest(unittest.TestCase):
             )
             with mock.patch.object(check_docs.check_text_encoding, "scan_tree",
                                    return_value=[encoding_failure]), \
+                 mock.patch.object(check_docs.check_text_encoding, "check_text_policy",
+                                   return_value=[]), \
                  mock.patch.object(check_docs.check_release_docs, "check_repo",
                                    return_value=["README.md:1: missing heading"]), \
                  mock.patch.object(check_docs, "_check_public_comments",

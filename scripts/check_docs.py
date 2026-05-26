@@ -40,7 +40,10 @@ def run_checks(root: Path) -> list[CheckResult]:
     root = root.resolve()
     encoding_messages = [
         f"{failure.path}: {failure.reason}"
-        for failure in check_text_encoding.scan_tree(root)
+        for failure in (
+            check_text_encoding.scan_tree(root)
+            + check_text_encoding.check_text_policy(root)
+        )
     ]
     return [
         CheckResult("text-encoding", encoding_messages),

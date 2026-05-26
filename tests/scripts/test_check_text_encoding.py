@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.check_text_encoding import scan_tree
+from scripts.check_text_encoding import check_text_policy, scan_tree
 
 
 class TextEncodingChecksTest(unittest.TestCase):
@@ -35,6 +35,55 @@ class TextEncodingChecksTest(unittest.TestCase):
             path.write_bytes(b"\x89PNG\r\n\x1a\n\xff")
 
             self.assertEqual([], scan_tree(root))
+
+    def test_requires_editorconfig_text_policy(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            failures = check_text_policy(Path(tmp))
+
+        self.assertEqual(1, len(failures))
+        self.assertEqual(Path(".editorconfig"), failures[0].path)
+        self.assertIn("missing", failures[0].reason)
+
+    def test_accepts_editorconfig_text_policy(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / ".editorconfig").write_text(
+                "root = true\n"
+                "\n"
+                "[*]\n"
+                "charset = utf-8\n"
+                "end_of_line = lf\n"
+                "insert_final_newline = true\n"
+                "trim_trailing_whitespace = true\n"
+                "\n"
+                "[*.{bat,cmd,ps1}]\n"
+                "end_of_line = crlf\n",
+                encoding="utf-8",
+            )
+
+            self.assertEqual([], check_text_policy(root))
+
+    def test_rejects_incomplete_editorconfig_text_policy(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / ".editorconfig").write_text(
+                "root = true\n"
+                "\n"
+                "[*]\n"
+                "charset = utf-8\n"
+                "end_of_line = lf\n"
+                "insert_final_newline = true\n"
+                "\n"
+                "[*.{bat,cmd,ps1}]\n"
+                "end_of_line = crlf\n",
+                encoding="utf-8",
+            )
+
+            failures = check_text_policy(root)
+
+        self.assertEqual(1, len(failures))
+        self.assertEqual(Path(".editorconfig"), failures[0].path)
+        self.assertIn("[*].trim_trailing_whitespace", failures[0].reason)
 
 
 if __name__ == "__main__":
