@@ -54,6 +54,12 @@ REQUIRED_EDITORCONFIG_SETTINGS = {
     },
     "*.{bat,cmd,ps1}": {"end_of_line": "crlf"},
 }
+REQUIRED_GITATTRIBUTES_LINES = (
+    "* text=auto eol=lf",
+    "*.bat text eol=crlf",
+    "*.cmd text eol=crlf",
+    "*.ps1 text eol=crlf",
+)
 
 
 @dataclass(frozen=True)
@@ -139,20 +145,45 @@ def _parse_editorconfig(text: str) -> dict[str, dict[str, str]]:
     return sections
 
 
+def _check_gitattributes_policy(root: Path) -> list[EncodingFailure]:
+    gitattributes = root / ".gitattributes"
+    if not gitattributes.exists():
+        return [EncodingFailure(Path(".gitattributes"), "missing .gitattributes")]
+
+    try:
+        text = gitattributes.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        reason = f"invalid utf-8 at byte {exc.start}: {exc.reason}"
+        return [EncodingFailure(Path(".gitattributes"), reason)]
+
+    lines = {
+        " ".join(line.strip().split()).lower()
+        for line in text.splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    }
+    return [
+        EncodingFailure(Path(".gitattributes"), f"missing {required}")
+        for required in REQUIRED_GITATTRIBUTES_LINES
+        if required not in lines
+    ]
+
+
 def check_text_policy(root: Path) -> list[EncodingFailure]:
     root = root.resolve()
+    failures = _check_gitattributes_policy(root)
     editorconfig = root / ".editorconfig"
     if not editorconfig.exists():
-        return [EncodingFailure(Path(".editorconfig"), "missing .editorconfig")]
+        failures.append(EncodingFailure(Path(".editorconfig"), "missing .editorconfig"))
+        return failures
 
     try:
         text = editorconfig.read_text(encoding="utf-8")
     except UnicodeDecodeError as exc:
         reason = f"invalid utf-8 at byte {exc.start}: {exc.reason}"
-        return [EncodingFailure(Path(".editorconfig"), reason)]
+        failures.append(EncodingFailure(Path(".editorconfig"), reason))
+        return failures
 
     sections = _parse_editorconfig(text)
-    failures: list[EncodingFailure] = []
     for section, required_settings in REQUIRED_EDITORCONFIG_SETTINGS.items():
         values = sections.get(section)
         section_name = "top-level" if section == "" else f"[{section}]"

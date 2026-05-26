@@ -5,6 +5,33 @@ from pathlib import Path
 from scripts.check_text_encoding import check_text_policy, scan_tree
 
 
+def write_valid_editorconfig(root: Path) -> None:
+    (root / ".editorconfig").write_text(
+        "root = true\n"
+        "\n"
+        "[*]\n"
+        "charset = utf-8\n"
+        "end_of_line = lf\n"
+        "insert_final_newline = true\n"
+        "trim_trailing_whitespace = true\n"
+        "\n"
+        "[*.{bat,cmd,ps1}]\n"
+        "end_of_line = crlf\n",
+        encoding="utf-8",
+    )
+
+
+def write_valid_gitattributes(root: Path) -> None:
+    (root / ".gitattributes").write_text(
+        "* text=auto eol=lf\n"
+        "\n"
+        "*.bat text eol=crlf\n"
+        "*.cmd text eol=crlf\n"
+        "*.ps1 text eol=crlf\n",
+        encoding="utf-8",
+    )
+
+
 class TextEncodingChecksTest(unittest.TestCase):
     def test_accepts_utf8_text(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -87,7 +114,10 @@ class TextEncodingChecksTest(unittest.TestCase):
 
     def test_requires_editorconfig_text_policy(self):
         with tempfile.TemporaryDirectory() as tmp:
-            failures = check_text_policy(Path(tmp))
+            root = Path(tmp)
+            write_valid_gitattributes(root)
+
+            failures = check_text_policy(root)
 
         self.assertEqual(1, len(failures))
         self.assertEqual(Path(".editorconfig"), failures[0].path)
@@ -96,25 +126,26 @@ class TextEncodingChecksTest(unittest.TestCase):
     def test_accepts_editorconfig_text_policy(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            (root / ".editorconfig").write_text(
-                "root = true\n"
-                "\n"
-                "[*]\n"
-                "charset = utf-8\n"
-                "end_of_line = lf\n"
-                "insert_final_newline = true\n"
-                "trim_trailing_whitespace = true\n"
-                "\n"
-                "[*.{bat,cmd,ps1}]\n"
-                "end_of_line = crlf\n",
-                encoding="utf-8",
-            )
+            write_valid_editorconfig(root)
+            write_valid_gitattributes(root)
 
             self.assertEqual([], check_text_policy(root))
+
+    def test_requires_gitattributes_text_policy(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_valid_editorconfig(root)
+
+            failures = check_text_policy(root)
+
+        self.assertEqual(1, len(failures))
+        self.assertEqual(Path(".gitattributes"), failures[0].path)
+        self.assertIn("missing", failures[0].reason)
 
     def test_rejects_incomplete_editorconfig_text_policy(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
+            write_valid_gitattributes(root)
             (root / ".editorconfig").write_text(
                 "root = true\n"
                 "\n"
