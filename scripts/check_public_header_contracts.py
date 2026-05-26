@@ -53,6 +53,9 @@ HANDLER_NAME_RE = re.compile(r"^\s*using\s+(\w*Handler)\s*=")
 ENUM_RE = re.compile(r"^\s*enum\s+class\s+(?:NEXUS_\w+_API\s+)?(\w+)\s*\{")
 ENUM_VALUE_RE = re.compile(r"^\s*(\w+)\s*(?:=\s*[^,]+)?\s*,?\s*$")
 CLASS_RE = re.compile(r"^\s*(class|struct)\s+(?:NEXUS_\w+_API\s+)?(\w+)\b")
+ZERO_TIMEOUT_FIELD_RE = re.compile(
+    r"^\s*std::chrono::milliseconds\s+(\w*timeout)\s*\{\s*0\s*\}\s*;"
+)
 DASH_PUNCTUATION = ("\u2014", "\u2013")
 
 
@@ -112,6 +115,27 @@ def check_net_callback_threading_contracts(root: Path) -> list[str]:
                 messages.append(
                     f"{relative}:{index + 1}: {match.group(1)} "
                     "missing threading or synchronous invocation contract"
+                )
+    return messages
+
+
+def check_net_zero_timeout_field_contracts(root: Path) -> list[str]:
+    messages = []
+    required = "0 means no explicit timeout"
+    for relative in NET_HEADERS:
+        path = root / relative
+        if not path.exists():
+            continue
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for index, line in enumerate(lines):
+            match = ZERO_TIMEOUT_FIELD_RE.match(line)
+            if not match:
+                continue
+            comment = " ".join(doxygen_block(lines, index)).lower()
+            if required not in comment:
+                messages.append(
+                    f"{relative}:{index + 1}: {match.group(1)} "
+                    "must document that 0 means no explicit timeout"
                 )
     return messages
 
@@ -213,6 +237,7 @@ def check_repo(root: Path) -> list[str]:
     checks = [
         ("callback-typedefs", check_net_callback_typedefs),
         ("callback-threading", check_net_callback_threading_contracts),
+        ("zero-timeout-fields", check_net_zero_timeout_field_contracts),
         ("enum-values", check_tracked_enum_values),
         ("lifecycle", check_tracked_lifecycle_methods),
         ("dash-punctuation", check_public_header_dash_punctuation),

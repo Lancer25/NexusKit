@@ -19,6 +19,12 @@ class PublicHeaderContractsTest(unittest.TestCase):
             check_public_header_contracts.check_net_callback_threading_contracts(Path(".")),
         )
 
+    def test_net_zero_timeout_fields_document_zero_semantics(self):
+        self.assertEqual(
+            [],
+            check_public_header_contracts.check_net_zero_timeout_field_contracts(Path(".")),
+        )
+
     def test_tracked_enum_values_have_doxygen_comments(self):
         self.assertEqual(
             [],

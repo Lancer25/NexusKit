@@ -47,6 +47,32 @@ class PublicHeaderContractsCheckerTest(unittest.TestCase):
             messages,
         )
 
+    def test_reports_zero_timeout_field_missing_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header = root / "include" / "nexus" / "net" / "udp.h"
+            header.parent.mkdir(parents=True)
+            header.write_text(
+                "#include <chrono>\n"
+                "namespace nexus::net {\n"
+                "struct UdpReceiveOptions {\n"
+                "    /// Receive timeout.\n"
+                "    std::chrono::milliseconds timeout{0};\n"
+                "};\n"
+                "} // namespace nexus::net\n",
+                encoding="utf-8",
+            )
+
+            messages = check_repo(root)
+
+        self.assertEqual(
+            [
+                "zero-timeout-fields: include/nexus/net/udp.h:5: "
+                "timeout must document that 0 means no explicit timeout"
+            ],
+            messages,
+        )
+
     def test_accepts_empty_repository_layout(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual([], check_repo(Path(tmp)))
