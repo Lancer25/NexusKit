@@ -28,7 +28,7 @@ jobs:
           python-version: "3.11"
 
       - name: Run documentation checker tests
-        run: python -m unittest tests.scripts.test_check_docs tests.scripts.test_check_text_encoding tests.scripts.test_check_release_docs tests.scripts.test_examples_contracts tests.scripts.test_public_header_contracts -v
+        run: python -m unittest tests.scripts.test_check_docs tests.scripts.test_check_text_encoding tests.scripts.test_check_public_header_contracts tests.scripts.test_check_release_docs tests.scripts.test_examples_contracts tests.scripts.test_public_header_contracts -v
 
       - name: Run documentation checks
         run: python scripts/check_docs.py --dir .

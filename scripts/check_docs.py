@@ -9,6 +9,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts import check_public_comments  # noqa: E402
+from scripts import check_public_header_contracts  # noqa: E402
 from scripts import check_release_docs  # noqa: E402
 from scripts import check_text_encoding  # noqa: E402
 
@@ -45,6 +46,7 @@ def run_checks(root: Path) -> list[CheckResult]:
         CheckResult("text-encoding", encoding_messages),
         CheckResult("release-docs", check_release_docs.check_repo(root)),
         CheckResult("public-comments", _check_public_comments(root)),
+        CheckResult("public-header-contracts", check_public_header_contracts.check_repo(root)),
     ]
 
 

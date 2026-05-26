@@ -17,12 +17,15 @@ class UnifiedDocsChecksTest(unittest.TestCase):
             root = Path(tmp)
             with mock.patch.object(check_docs.check_text_encoding, "scan_tree", return_value=[]), \
                  mock.patch.object(check_docs.check_release_docs, "check_repo", return_value=[]), \
-                 mock.patch.object(check_docs, "_check_public_comments", return_value=[]):
+                 mock.patch.object(check_docs, "_check_public_comments", return_value=[]), \
+                 mock.patch.object(check_docs.check_public_header_contracts, "check_repo", return_value=[]):
                 results = check_docs.run_checks(root)
 
         self.assertTrue(all(result.ok for result in results))
-        self.assertEqual(["text-encoding", "release-docs", "public-comments"],
-                         [result.name for result in results])
+        self.assertEqual(
+            ["text-encoding", "release-docs", "public-comments", "public-header-contracts"],
+            [result.name for result in results],
+        )
 
     def test_run_checks_aggregates_failures(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -35,7 +38,9 @@ class UnifiedDocsChecksTest(unittest.TestCase):
                  mock.patch.object(check_docs.check_release_docs, "check_repo",
                                    return_value=["README.md:1: missing heading"]), \
                  mock.patch.object(check_docs, "_check_public_comments",
-                                   return_value=["include/nexus/example.h: Widget"]):
+                                   return_value=["include/nexus/example.h: Widget"]), \
+                 mock.patch.object(check_docs.check_public_header_contracts, "check_repo",
+                                   return_value=["include/nexus/example.h:1: bad contract"]):
                 results = check_docs.run_checks(root)
 
         failures = {result.name: result.messages for result in results}
@@ -45,6 +50,8 @@ class UnifiedDocsChecksTest(unittest.TestCase):
                          failures["release-docs"])
         self.assertEqual(["include/nexus/example.h: Widget"],
                          failures["public-comments"])
+        self.assertEqual(["include/nexus/example.h:1: bad contract"],
+                         failures["public-header-contracts"])
 
     def test_script_runs_as_direct_file(self):
         completed = subprocess.run(
