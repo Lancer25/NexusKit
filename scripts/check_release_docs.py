@@ -126,6 +126,21 @@ def _check_hid_hotplug(root):
     return messages
 
 
+def _check_iteration_hygiene_summary(root):
+    relative = "docs/iteration.md"
+    text = "\n".join(_read_lines(root, relative))
+    required = ("Phase 13E-13K", "Repository text and documentation hygiene")
+    if all(token in text for token in required):
+        return []
+    return [
+        _message(
+            relative,
+            1,
+            "docs/iteration.md must summarize Phase 13E-13K Repository text and documentation hygiene",
+        )
+    ]
+
+
 def check_repo(root):
     root = Path(root)
     messages = []
@@ -141,6 +156,7 @@ def check_repo(root):
         messages.extend(_check_full_build_flags(root, relative))
     messages.extend(_check_screen_default(root))
     messages.extend(_check_hid_hotplug(root))
+    messages.extend(_check_iteration_hygiene_summary(root))
     return messages
 
 

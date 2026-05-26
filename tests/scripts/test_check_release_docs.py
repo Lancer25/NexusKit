@@ -57,6 +57,7 @@ cmake --preset windows-msvc-release -B build/windows-msvc-release `
     write_file(
         root,
         "docs/iteration.md",
+        "Phase 13E-13K: Repository text and documentation hygiene checks.\n"
         "Do not add HID-level hotplug support unless the product requirement changes.\n",
     )
     write_file(
@@ -128,6 +129,19 @@ cmake --preset windows-msvc-release `
             messages = check_release_docs.check_repo(Path(tmp))
 
         self.assertTrue(any("HID-level hotplug" in message for message in messages))
+
+    def test_rejects_iteration_without_phase13_hygiene_summary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            minimal_repo(tmp)
+            write_file(
+                tmp,
+                "docs/iteration.md",
+                "Do not add HID-level hotplug support unless the product requirement changes.\n",
+            )
+
+            messages = check_release_docs.check_repo(Path(tmp))
+
+        self.assertTrue(any("Phase 13E-13K" in message for message in messages))
 
 
 if __name__ == "__main__":

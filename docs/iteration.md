@@ -57,6 +57,8 @@ Each implementation phase should be small, testable, and documented.
 - Phase 12A: Add `nexus_audio` with WASAPI backend - audio input device enumeration and PCM int16 capture.
 - Phase 12B: Add `nexus_camera` with libuvc (Windows) and V4L2 (Linux) backends - USB camera device enumeration and video frame capture.
 - Phase 12C: Optimize `nexus_audio` and `nexus_camera` - add WASAPI volume/mute control, implement full PulseAudio backend, add V4L2 camera controls (brightness, contrast, etc.).
+- Phase 13C-13D: Public header documentation and contract checks for callback typedefs, enum values, lifecycle methods, and ASCII dash punctuation.
+- Phase 13E-13K: Repository text and documentation hygiene checks for UTF-8 policy, final newlines, trailing whitespace, UTF-8 BOMs, CI docs test discovery, `.gitattributes`, policy files, and `.gitignore`.
 
 ## Near-Term Roadmap
 
