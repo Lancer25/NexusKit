@@ -24,6 +24,8 @@ TEXT_EXTENSIONS = {
     ".yaml",
 }
 TEXT_FILENAMES = {
+    ".editorconfig",
+    ".gitattributes",
     "CHANGELOG.md",
     "CLAUDE.md",
     "CMakeLists.txt",

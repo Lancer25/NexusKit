@@ -95,6 +95,28 @@ class TextEncodingChecksTest(unittest.TestCase):
         self.assertIn("line 2", failures[0].reason)
         self.assertIn("trailing whitespace", failures[0].reason)
 
+    def test_rejects_editorconfig_trailing_whitespace(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / ".editorconfig").write_text("root = true \n", encoding="utf-8")
+
+            failures = scan_tree(root)
+
+        self.assertEqual(1, len(failures))
+        self.assertEqual(Path(".editorconfig"), failures[0].path)
+        self.assertIn("trailing whitespace", failures[0].reason)
+
+    def test_rejects_gitattributes_missing_final_newline(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / ".gitattributes").write_text("* text=auto eol=lf", encoding="utf-8")
+
+            failures = scan_tree(root)
+
+        self.assertEqual(1, len(failures))
+        self.assertEqual(Path(".gitattributes"), failures[0].path)
+        self.assertIn("missing final newline", failures[0].reason)
+
     def test_accepts_crlf_text_without_trailing_whitespace(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
