@@ -4,6 +4,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+PUBLIC_HEADER_ROOT = ROOT / "include" / "nexus"
 NET_HEADERS = [
     "include/nexus/net/tcp.h",
     "include/nexus/net/tcp_listener.h",
@@ -50,6 +51,7 @@ HANDLER_RE = re.compile(r"^\s*using\s+\w*Handler\s*=")
 ENUM_RE = re.compile(r"^\s*enum\s+class\s+(?:NEXUS_\w+_API\s+)?(\w+)\s*\{")
 ENUM_VALUE_RE = re.compile(r"^\s*(\w+)\s*(?:=\s*[^,]+)?\s*,?\s*$")
 CLASS_RE = re.compile(r"^\s*(class|struct)\s+(?:NEXUS_\w+_API\s+)?(\w+)\b")
+DASH_PUNCTUATION = ("—", "–")
 
 
 def has_doxygen(lines, index):
@@ -149,6 +151,17 @@ class PublicHeaderContractsTest(unittest.TestCase):
                     missing.append(f"{relative}:{index + 1}: {class_name}: {stripped}")
 
         self.assertEqual([], missing)
+
+    def test_public_headers_use_ascii_dash_punctuation(self):
+        offenders = []
+        for path in sorted(PUBLIC_HEADER_ROOT.rglob("*.h")):
+            relative = path.relative_to(ROOT)
+            lines = path.read_text(encoding="utf-8").splitlines()
+            for index, line in enumerate(lines):
+                if any(mark in line for mark in DASH_PUNCTUATION):
+                    offenders.append(f"{relative}:{index + 1}: {line.strip()}")
+
+        self.assertEqual([], offenders)
 
 
 if __name__ == "__main__":
