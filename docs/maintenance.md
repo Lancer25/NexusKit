@@ -186,3 +186,15 @@ cmake -S . -B build/windows-msvc-debug -DNEXUS_ENABLE_MEDIA=ON
 | 构建系统变更 | `docs/build.md` |
 | 迭代流程/路线图变更 | `docs/iteration.md` |
 | 行为变更（非 API） | `CHANGELOG.md` + 相关模块文档 |
+
+## Documentation quality checks
+
+Run the unified documentation hygiene gate before publishing docs or release
+guidance changes:
+
+```powershell
+python scripts/check_docs.py --dir .
+```
+
+This runs UTF-8 text encoding checks, release documentation invariants, and
+public header Doxygen coverage checks.
