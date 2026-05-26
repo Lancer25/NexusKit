@@ -26,6 +26,7 @@ TEXT_EXTENSIONS = {
 TEXT_FILENAMES = {
     ".editorconfig",
     ".gitattributes",
+    ".gitignore",
     "CHANGELOG.md",
     "CLAUDE.md",
     "CMakeLists.txt",

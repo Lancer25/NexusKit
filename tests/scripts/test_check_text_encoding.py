@@ -117,6 +117,17 @@ class TextEncodingChecksTest(unittest.TestCase):
         self.assertEqual(Path(".gitattributes"), failures[0].path)
         self.assertIn("missing final newline", failures[0].reason)
 
+    def test_rejects_gitignore_trailing_whitespace(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / ".gitignore").write_text("build/ \n", encoding="utf-8")
+
+            failures = scan_tree(root)
+
+        self.assertEqual(1, len(failures))
+        self.assertEqual(Path(".gitignore"), failures[0].path)
+        self.assertIn("trailing whitespace", failures[0].reason)
+
     def test_accepts_crlf_text_without_trailing_whitespace(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
