@@ -32,6 +32,9 @@ LIFECYCLE_HEADERS = [
     "include/nexus/media/media.h",
     "include/nexus/screen/screen.h",
     "include/nexus/usb/usb.h",
+    "include/nexus/audio/capturer.h",
+    "include/nexus/audio/player.h",
+    "include/nexus/camera/capturer.h",
 ]
 
 HANDLER_RE = re.compile(r"^\s*using\s+\w*Handler\s*=")

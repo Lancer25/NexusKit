@@ -28,8 +28,11 @@ public:
     /// Callback type for captured audio frames.
     using DataHandler = std::function<void(Result<AudioFrame>)>;
 
+    /// Moves an audio capturer handle.
     AudioCapturer(AudioCapturer&& other) noexcept;
+    /// Moves an audio capturer handle.
     AudioCapturer& operator=(AudioCapturer&& other) noexcept;
+    /// Stops capture and releases the capturer if needed.
     ~AudioCapturer();
 
     /// Creates a capturer with the given options.
@@ -57,22 +60,22 @@ public:
     /// @retval kUnavailable on backend failure.
     Status start(DataHandler handler);
 
-    /// Stops capturing.  Idempotent — safe to call multiple times.
+    /// Stops capturing.  Idempotent; safe to call multiple times.
     Status stop();
 
     /// True while actively capturing frames.
     bool is_capturing() const;
 
-    /// Gets the master volume level of a device (0–100).
+    /// Gets the master volume level of a device (0-100).
     ///
     /// @param device_id Device id to query. Empty = system default input.
     /// @retval kNotFound when the device is not found.
     static Result<unsigned int> volume(const std::string& device_id = {});
 
-    /// Sets the master volume level of a device (0–100).
+    /// Sets the master volume level of a device (0-100).
     ///
     /// @param device_id Device id. Empty = system default input.
-    /// @param level Volume level 0–100.
+    /// @param level Volume level 0-100.
     /// @retval kNotFound when the device is not found.
     static Status set_volume(const std::string& device_id, unsigned int level);
 

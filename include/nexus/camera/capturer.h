@@ -28,8 +28,11 @@ public:
     /// Callback type for captured video frames.
     using DataHandler = std::function<void(Result<CameraFrame>)>;
 
+    /// Moves a camera capturer handle.
     CameraCapturer(CameraCapturer&& other) noexcept;
+    /// Moves a camera capturer handle.
     CameraCapturer& operator=(CameraCapturer&& other) noexcept;
+    /// Stops capture and releases the capturer if needed.
     ~CameraCapturer();
 
     /// Creates a capturer with the given options.
@@ -61,7 +64,7 @@ public:
     /// @retval kUnavailable on backend failure.
     Status start(DataHandler handler);
 
-    /// Stops capturing.  Idempotent — safe to call multiple times.
+    /// Stops capturing.  Idempotent; safe to call multiple times.
     Status stop();
 
     /// True while actively capturing frames.

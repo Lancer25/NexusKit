@@ -47,8 +47,11 @@ public:
     /// stop playback gracefully.
     using DataHandler = std::function<Result<AudioFrame>()>;
 
+    /// Moves an audio player handle.
     AudioPlayer(AudioPlayer&& other) noexcept;
+    /// Moves an audio player handle.
     AudioPlayer& operator=(AudioPlayer&& other) noexcept;
+    /// Stops playback and releases the player if needed.
     ~AudioPlayer();
 
     /// Creates a player with the given options.
@@ -79,7 +82,7 @@ public:
     /// @retval kUnavailable on backend failure.
     Status start(DataHandler handler);
 
-    /// Stops playback.  Idempotent — safe to call multiple times.
+    /// Stops playback.  Idempotent; safe to call multiple times.
     Status stop();
 
     /// True while actively playing audio.
