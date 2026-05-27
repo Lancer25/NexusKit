@@ -56,10 +56,24 @@ CLASS_RE = re.compile(r"^\s*(class|struct)\s+(?:NEXUS_\w+_API\s+)?(\w+)\b")
 RESULT_DECL_RE = re.compile(
     r"^\s*(?:static\s+)?(?:NEXUS_\w+_API\s+)?Result<.+>\s+(\w+)\s*\("
 )
+STATUS_DECL_RE = re.compile(
+    r"^\s*(?:static\s+)?(?:NEXUS_\w+_API\s+)?Status\s+(\w+)\s*\("
+)
 ZERO_TIMEOUT_FIELD_RE = re.compile(
     r"^\s*std::chrono::milliseconds\s+(\w*timeout)\s*\{\s*0\s*\}\s*;"
 )
 DASH_PUNCTUATION = ("\u2014", "\u2013")
+STATUS_ERROR_CONTRACT_EXCLUDES = {
+    "close",
+    "stop",
+    "ok_status",
+    "invalid_argument",
+    "not_found",
+    "internal",
+    "failed_precondition",
+    "unavailable",
+    "internal_error",
+}
 ERROR_STATUS_TOKENS = (
     "@retval",
     "StatusCode::kInvalidArgument",
@@ -237,6 +251,57 @@ def check_result_error_contracts(root: Path) -> list[str]:
     return messages
 
 
+def check_status_error_contracts(root: Path) -> list[str]:
+    messages = []
+    header_root = root / PUBLIC_HEADER_ROOT
+    if not header_root.exists():
+        return messages
+    for path in sorted(header_root.rglob("*.h")):
+        relative = path.relative_to(root).as_posix()
+        lines = path.read_text(encoding="utf-8").splitlines()
+        class_name = None
+        in_public = True
+        brace_depth = 0
+        for index, line in enumerate(lines):
+            stripped = line.strip()
+            if class_name is None:
+                class_match = CLASS_RE.match(stripped)
+                if class_match and "{" in stripped:
+                    class_name = class_match.group(2)
+                    in_public = class_match.group(1) == "struct"
+                    brace_depth = stripped.count("{") - stripped.count("}")
+                    continue
+                in_public = True
+            else:
+                brace_depth += stripped.count("{") - stripped.count("}")
+                if brace_depth <= 0:
+                    class_name = None
+                    in_public = True
+                    continue
+                if stripped == "public:":
+                    in_public = True
+                    continue
+                if stripped in ("private:", "protected:"):
+                    in_public = False
+                    continue
+
+            if not in_public:
+                continue
+            match = STATUS_DECL_RE.match(stripped)
+            if not match:
+                continue
+            name = match.group(1)
+            if name in STATUS_ERROR_CONTRACT_EXCLUDES:
+                continue
+            comment = " ".join(doxygen_block(lines, index))
+            if not any(token in comment for token in ERROR_STATUS_TOKENS):
+                messages.append(
+                    f"{relative}:{index + 1}: {name} "
+                    "must document expected Status error status codes"
+                )
+    return messages
+
+
 def check_tracked_enum_values(root: Path) -> list[str]:
     messages = []
     for relative, enum_names in ENUMS.items():
@@ -337,6 +402,7 @@ def check_repo(root: Path) -> list[str]:
         ("zero-timeout-fields", check_net_zero_timeout_field_contracts),
         ("move-only-ownership", check_move_only_ownership_contracts),
         ("result-error-contracts", check_result_error_contracts),
+        ("status-error-contracts", check_status_error_contracts),
         ("enum-values", check_tracked_enum_values),
         ("lifecycle", check_tracked_lifecycle_methods),
         ("dash-punctuation", check_public_header_dash_punctuation),

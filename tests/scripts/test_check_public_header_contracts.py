@@ -130,6 +130,36 @@ class PublicHeaderContractsCheckerTest(unittest.TestCase):
             messages,
         )
 
+    def test_reports_status_method_missing_error_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header = root / "include" / "nexus" / "net" / "tcp.h"
+            header.parent.mkdir(parents=True)
+            header.write_text(
+                "namespace nexus::net {\n"
+                "class NEXUS_NET_API TcpClient {\n"
+                "public:\n"
+                "    /// Writes all bytes from `data` to the socket.\n"
+                "    Status write_all(std::string_view data);\n"
+                "    /// Closes the connection. Idempotent.\n"
+                "    Status close();\n"
+                "private:\n"
+                "    Status write_impl(std::string_view data);\n"
+                "};\n"
+                "} // namespace nexus::net\n",
+                encoding="utf-8",
+            )
+
+            messages = check_repo(root)
+
+        self.assertEqual(
+            [
+                "status-error-contracts: include/nexus/net/tcp.h:5: "
+                "write_all must document expected Status error status codes"
+            ],
+            messages,
+        )
+
     def test_accepts_empty_repository_layout(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual([], check_repo(Path(tmp)))

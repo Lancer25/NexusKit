@@ -160,6 +160,9 @@ public:
     Status write_all(std::string_view data);
 
     /// Writes all bytes from `data` to the socket with an I/O timeout.
+    ///
+    /// @retval kFailedPrecondition when the client is closed or not connected.
+    /// @retval kUnavailable on socket error or timeout.
     Status write_all(std::string_view data, const TcpIoOptions& options);
 
     /// Reads up to `max_bytes` from the socket.

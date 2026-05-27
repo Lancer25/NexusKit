@@ -55,6 +55,12 @@ class PublicHeaderContractsTest(unittest.TestCase):
             check_public_header_contracts.check_result_error_contracts(Path(".")),
         )
 
+    def test_status_apis_document_error_contracts(self):
+        self.assertEqual(
+            [],
+            check_public_header_contracts.check_status_error_contracts(Path(".")),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

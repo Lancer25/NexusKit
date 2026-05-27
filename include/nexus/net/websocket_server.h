@@ -144,6 +144,9 @@ public:
     void async_send_text(ClientId client, std::string_view message, SendHandler h);
 
     /// Closes a single client connection synchronously.
+    ///
+    /// @retval kNotFound when `client` is not connected.
+    /// @retval kUnavailable on close error or timeout.
     Status close_client(ClientId client);
 
     /// Closes a single client connection asynchronously.
