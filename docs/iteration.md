@@ -59,6 +59,7 @@ Each implementation phase should be small, testable, and documented.
 - Phase 12C: Optimize `nexus_audio` and `nexus_camera` - add WASAPI volume/mute control, implement full PulseAudio backend, add V4L2 camera controls (brightness, contrast, etc.).
 - Phase 13C-13D: Public header documentation and contract checks for callback typedefs, enum values, lifecycle methods, and ASCII dash punctuation.
 - Phase 13E-13K: Repository text and documentation hygiene checks for UTF-8 policy, final newlines, trailing whitespace, UTF-8 BOMs, CI docs test discovery, `.gitattributes`, policy files, and `.gitignore`.
+- Phase 14A: Public API contract checks for net callback threading, zero timeout fields, and move-only ownership semantics.
 
 ## Near-Term Roadmap
 
@@ -66,7 +67,7 @@ Each implementation phase should be small, testable, and documented.
 
 - Phase 13A: Add a CI/build matrix and packaging checks for default, optional-module, and release configurations.
 - Phase 13B: Fill example coverage for modules with stable public APIs, starting with media mux/remux workflows and audio/camera smoke examples.
-- Phase 14A: Extend public API contract checks for ownership, threading, timeout, and error semantics beyond the completed Phase 13C-13D comment coverage.
+- Phase 14B: Extend public API contract checks for public error and precondition semantics beyond ownership, threading, and timeout coverage.
 
 ### Media Follow-Ups
 
