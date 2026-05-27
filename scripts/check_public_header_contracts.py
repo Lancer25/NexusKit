@@ -140,6 +140,29 @@ def check_net_zero_timeout_field_contracts(root: Path) -> list[str]:
     return messages
 
 
+def check_move_only_ownership_contracts(root: Path) -> list[str]:
+    messages = []
+    header_root = root / PUBLIC_HEADER_ROOT
+    if not header_root.exists():
+        return messages
+    for path in sorted(header_root.rglob("*.h")):
+        relative = path.relative_to(root).as_posix()
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for index, line in enumerate(lines):
+            match = CLASS_RE.match(line.strip())
+            if not match:
+                continue
+            comment = " ".join(doxygen_block(lines, index)).lower()
+            if "move-only" not in comment:
+                continue
+            if "copy is deleted" not in comment or "move transfers ownership" not in comment:
+                messages.append(
+                    f"{relative}:{index + 1}: {match.group(2)} "
+                    "must document that copy is deleted and move transfers ownership"
+                )
+    return messages
+
+
 def check_tracked_enum_values(root: Path) -> list[str]:
     messages = []
     for relative, enum_names in ENUMS.items():
@@ -238,6 +261,7 @@ def check_repo(root: Path) -> list[str]:
         ("callback-typedefs", check_net_callback_typedefs),
         ("callback-threading", check_net_callback_threading_contracts),
         ("zero-timeout-fields", check_net_zero_timeout_field_contracts),
+        ("move-only-ownership", check_move_only_ownership_contracts),
         ("enum-values", check_tracked_enum_values),
         ("lifecycle", check_tracked_lifecycle_methods),
         ("dash-punctuation", check_public_header_dash_punctuation),

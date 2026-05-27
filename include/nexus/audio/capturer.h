@@ -23,6 +23,9 @@ class AudioCapturerStorage;
 ///
 /// Created via `create(options)`.  Start capturing with `start(handler)`
 /// which delivers `Result<AudioFrame>` on an internal capture thread.
+///
+/// Copy is deleted; move transfers ownership.  A moved-from capturer is
+/// stopped and `is_capturing()` returns false.
 class NEXUS_AUDIO_API AudioCapturer {
 public:
     /// Callback type for captured audio frames.

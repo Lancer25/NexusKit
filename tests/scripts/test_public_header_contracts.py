@@ -43,6 +43,12 @@ class PublicHeaderContractsTest(unittest.TestCase):
             check_public_header_contracts.check_public_header_dash_punctuation(Path(".")),
         )
 
+    def test_move_only_classes_document_ownership_contracts(self):
+        self.assertEqual(
+            [],
+            check_public_header_contracts.check_move_only_ownership_contracts(Path(".")),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

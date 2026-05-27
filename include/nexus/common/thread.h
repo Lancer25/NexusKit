@@ -46,6 +46,8 @@ private:
 
 /// Move-only background thread with start / stop lifecycle.
 ///
+/// Copy is deleted; move transfers ownership.  A moved-from thread is stopped.
+///
 /// Usage:
 /// @code
 /// nexus::common::Thread t;

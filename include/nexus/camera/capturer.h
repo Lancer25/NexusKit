@@ -23,6 +23,9 @@ class CameraCapturerStorage;
 ///
 /// Created via `create(options)`.  Start capturing with `start(handler)`
 /// which delivers `Result<CameraFrame>` on an internal capture thread.
+///
+/// Copy is deleted; move transfers ownership.  A moved-from capturer is
+/// stopped and `is_capturing()` returns false.
 class NEXUS_CAMERA_API CameraCapturer {
 public:
     /// Callback type for captured video frames.

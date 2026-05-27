@@ -38,6 +38,8 @@ struct WebSocketServerOptions {
 /// and `set_on_disconnect` to register event handlers before calling
 /// `listen(port)` or `async_listen(port, handler)`.
 ///
+/// Copy is deleted; move transfers ownership.  A moved-from server is closed.
+///
 /// Supports text frames only.  Sync methods block. Network event paths run on
 /// websocketpp's internal event-loop thread; validation and immediate
 /// completion paths may invoke callbacks synchronously before the async method

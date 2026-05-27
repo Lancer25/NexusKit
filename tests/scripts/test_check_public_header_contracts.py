@@ -73,6 +73,33 @@ class PublicHeaderContractsCheckerTest(unittest.TestCase):
             messages,
         )
 
+    def test_reports_move_only_class_missing_ownership_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header = root / "include" / "nexus" / "audio" / "capturer.h"
+            header.parent.mkdir(parents=True)
+            header.write_text(
+                "namespace nexus::audio {\n"
+                "/// Move-only RAII audio capturer.\n"
+                "class NEXUS_AUDIO_API AudioCapturer {\n"
+                "public:\n"
+                "    /// Moves an audio capturer handle.\n"
+                "    AudioCapturer(AudioCapturer&& other) noexcept;\n"
+                "};\n"
+                "} // namespace nexus::audio\n",
+                encoding="utf-8",
+            )
+
+            messages = check_repo(root)
+
+        self.assertEqual(
+            [
+                "move-only-ownership: include/nexus/audio/capturer.h:3: "
+                "AudioCapturer must document that copy is deleted and move transfers ownership"
+            ],
+            messages,
+        )
+
     def test_accepts_empty_repository_layout(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual([], check_repo(Path(tmp)))
