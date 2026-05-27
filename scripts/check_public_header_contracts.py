@@ -328,6 +328,34 @@ def check_opaque_identifier_contracts(root: Path) -> list[str]:
     return messages
 
 
+def check_screen_visible_window_contracts(root: Path) -> list[str]:
+    messages = []
+    relative = "include/nexus/screen/screen.h"
+    path = root / relative
+    if not path.exists():
+        return messages
+    lines = path.read_text(encoding="utf-8").splitlines()
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("struct ScreenWindow"):
+            comment = " ".join(doxygen_block(lines, index)).lower()
+            required = ("visible", "minimized", "cross-display")
+            if not all(token in comment for token in required):
+                messages.append(
+                    f"{relative}:{index + 1}: ScreenWindow "
+                    "must document visible, minimized, and cross-display enumeration semantics"
+                )
+        if "capture_window(" in stripped:
+            comment = " ".join(doxygen_block(lines, index)).lower()
+            required = ("visible", "desktop", "occluding")
+            if not all(token in comment for token in required):
+                messages.append(
+                    f"{relative}:{index + 1}: capture_window "
+                    "must document visible desktop pixels and occlusion semantics"
+                )
+    return messages
+
+
 def check_tracked_enum_values(root: Path) -> list[str]:
     messages = []
     for relative, enum_names in ENUMS.items():
@@ -430,6 +458,7 @@ def check_repo(root: Path) -> list[str]:
         ("result-error-contracts", check_result_error_contracts),
         ("status-error-contracts", check_status_error_contracts),
         ("opaque-identifiers", check_opaque_identifier_contracts),
+        ("screen-visible-window", check_screen_visible_window_contracts),
         ("enum-values", check_tracked_enum_values),
         ("lifecycle", check_tracked_lifecycle_methods),
         ("dash-punctuation", check_public_header_dash_punctuation),

@@ -67,6 +67,12 @@ class PublicHeaderContractsTest(unittest.TestCase):
             check_public_header_contracts.check_opaque_identifier_contracts(Path(".")),
         )
 
+    def test_screen_window_capture_documents_visible_pixel_semantics(self):
+        self.assertEqual(
+            [],
+            check_public_header_contracts.check_screen_visible_window_contracts(Path(".")),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

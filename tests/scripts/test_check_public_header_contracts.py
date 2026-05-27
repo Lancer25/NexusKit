@@ -185,6 +185,40 @@ class PublicHeaderContractsCheckerTest(unittest.TestCase):
             messages,
         )
 
+    def test_reports_screen_window_missing_visible_capture_contracts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header = root / "include" / "nexus" / "screen" / "screen.h"
+            header.parent.mkdir(parents=True)
+            header.write_text(
+                "namespace nexus::screen {\n"
+                "/// A capturable desktop window.\n"
+                "struct ScreenWindow {\n"
+                "    /// Opaque backend id. Do not persist across runs.\n"
+                "    std::string id;\n"
+                "};\n"
+                "class NEXUS_SCREEN_API ScreenCapturer {\n"
+                "public:\n"
+                "    /// Captures a desktop window.\n"
+                "    /// @retval kInvalidArgument when `window_id` is unknown.\n"
+                "    Result<ScreenFrame> capture_window(const std::string& window_id);\n"
+                "};\n"
+                "} // namespace nexus::screen\n",
+                encoding="utf-8",
+            )
+
+            messages = check_repo(root)
+
+        self.assertEqual(
+            [
+                "screen-visible-window: include/nexus/screen/screen.h:3: "
+                "ScreenWindow must document visible, minimized, and cross-display enumeration semantics",
+                "screen-visible-window: include/nexus/screen/screen.h:11: "
+                "capture_window must document visible desktop pixels and occlusion semantics",
+            ],
+            messages,
+        )
+
     def test_accepts_empty_repository_layout(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual([], check_repo(Path(tmp)))
