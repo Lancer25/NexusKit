@@ -59,6 +59,9 @@ RESULT_DECL_RE = re.compile(
 STATUS_DECL_RE = re.compile(
     r"^\s*(?:static\s+)?(?:NEXUS_\w+_API\s+)?Status\s+(\w+)\s*\("
 )
+OPAQUE_IDENTIFIER_FIELD_RE = re.compile(
+    r"^\s*std::string\s+(\w*(?:id|path)\w*)\s*;"
+)
 ZERO_TIMEOUT_FIELD_RE = re.compile(
     r"^\s*std::chrono::milliseconds\s+(\w*timeout)\s*\{\s*0\s*\}\s*;"
 )
@@ -302,6 +305,29 @@ def check_status_error_contracts(root: Path) -> list[str]:
     return messages
 
 
+def check_opaque_identifier_contracts(root: Path) -> list[str]:
+    messages = []
+    header_root = root / PUBLIC_HEADER_ROOT
+    if not header_root.exists():
+        return messages
+    for path in sorted(header_root.rglob("*.h")):
+        relative = path.relative_to(root).as_posix()
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for index, line in enumerate(lines):
+            match = OPAQUE_IDENTIFIER_FIELD_RE.match(line)
+            if not match:
+                continue
+            comment = " ".join(doxygen_block(lines, index)).lower()
+            if "opaque" not in comment:
+                continue
+            if "do not persist" not in comment and "use this to open" not in comment:
+                messages.append(
+                    f"{relative}:{index + 1}: {match.group(1)} "
+                    "must document whether callers should persist or only use the opaque value to open"
+                )
+    return messages
+
+
 def check_tracked_enum_values(root: Path) -> list[str]:
     messages = []
     for relative, enum_names in ENUMS.items():
@@ -403,6 +429,7 @@ def check_repo(root: Path) -> list[str]:
         ("move-only-ownership", check_move_only_ownership_contracts),
         ("result-error-contracts", check_result_error_contracts),
         ("status-error-contracts", check_status_error_contracts),
+        ("opaque-identifiers", check_opaque_identifier_contracts),
         ("enum-values", check_tracked_enum_values),
         ("lifecycle", check_tracked_lifecycle_methods),
         ("dash-punctuation", check_public_header_dash_punctuation),

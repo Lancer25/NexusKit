@@ -160,6 +160,31 @@ class PublicHeaderContractsCheckerTest(unittest.TestCase):
             messages,
         )
 
+    def test_reports_opaque_identifier_missing_lifecycle_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header = root / "include" / "nexus" / "screen" / "screen.h"
+            header.parent.mkdir(parents=True)
+            header.write_text(
+                "namespace nexus::screen {\n"
+                "struct ScreenDisplay {\n"
+                "    /// Opaque backend id.\n"
+                "    std::string id;\n"
+                "};\n"
+                "} // namespace nexus::screen\n",
+                encoding="utf-8",
+            )
+
+            messages = check_repo(root)
+
+        self.assertEqual(
+            [
+                "opaque-identifiers: include/nexus/screen/screen.h:4: "
+                "id must document whether callers should persist or only use the opaque value to open"
+            ],
+            messages,
+        )
+
     def test_accepts_empty_repository_layout(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual([], check_repo(Path(tmp)))

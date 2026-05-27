@@ -61,6 +61,12 @@ class PublicHeaderContractsTest(unittest.TestCase):
             check_public_header_contracts.check_status_error_contracts(Path(".")),
         )
 
+    def test_opaque_identifier_fields_document_lifecycle_contracts(self):
+        self.assertEqual(
+            [],
+            check_public_header_contracts.check_opaque_identifier_contracts(Path(".")),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
