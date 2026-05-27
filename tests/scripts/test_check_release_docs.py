@@ -60,7 +60,7 @@ cmake --preset windows-msvc-release -B build/windows-msvc-release `
         "Phase 13E-13K: Repository text and documentation hygiene checks.\n"
         "Commit and push to `master` unless the active task says otherwise.\n"
         "Continue directly on `master` unless the user requests a branch.\n"
-        "- Phase 14B: Extend public API contract checks to error and precondition notes.\n"
+        "- Phase 14C: Extend public API contract checks to module-specific invariants.\n"
         "Do not add HID-level hotplug support unless the product requirement changes.\n",
     )
     write_file(
@@ -202,6 +202,26 @@ cmake --preset windows-msvc-release `
             messages = check_release_docs.check_repo(Path(tmp))
 
         self.assertTrue(any("Phase 14A" in message for message in messages))
+
+    def test_rejects_iteration_future_phase14b_roadmap_item(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            minimal_repo(tmp)
+            write_file(
+                tmp,
+                "docs/iteration.md",
+                "Phase 13E-13K: Repository text and documentation hygiene checks.\n"
+                "Commit and push to `master` unless the active task says otherwise.\n"
+                "Continue directly on `master` unless the user requests a branch.\n"
+                "\n"
+                "## Near-Term Roadmap\n"
+                "\n"
+                "- Phase 14B: Extend public API contract checks to error and precondition notes.\n"
+                "Do not add HID-level hotplug support unless the product requirement changes.\n",
+            )
+
+            messages = check_release_docs.check_repo(Path(tmp))
+
+        self.assertTrue(any("Phase 14B" in message for message in messages))
 
 
 if __name__ == "__main__":

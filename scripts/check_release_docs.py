@@ -171,6 +171,10 @@ def _check_iteration_stale_roadmap(root):
             messages.append(
                 _message(relative, idx, "Phase 14A is completed; do not list it as future roadmap work")
             )
+        if in_roadmap and line.lstrip().startswith("- Phase 14B:"):
+            messages.append(
+                _message(relative, idx, "Phase 14B is completed; do not list it as future roadmap work")
+            )
     return messages
 
 
