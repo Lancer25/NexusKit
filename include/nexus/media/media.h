@@ -548,7 +548,12 @@ public:
     ///
     /// May block on disk I/O and codec initialization.
     ///
-    /// @return An open decoder on success, or the same error codes as above.
+    /// @return An open decoder on success.
+    /// @retval kInvalidArgument when `path` or `options` are invalid.
+    /// @retval kNotFound when `path` does not exist or no matching stream was
+    /// found.
+    /// @retval kFailedPrecondition when FFmpeg is unavailable or the file
+    /// cannot be opened/decoded.
     static Result<MediaDecoder> open(
         const std::filesystem::path& path,
         const MediaDecodeOptions& options);

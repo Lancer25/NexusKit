@@ -116,11 +116,21 @@ public:
     bool is_open() const;
 
     /// Performs a synchronous HTTP GET request.  May block.
+    ///
+    /// @retval kFailedPrecondition when the client is closed or the redirect
+    /// limit is exceeded.
+    /// @retval kCancelled when the request is cancelled.
+    /// @retval kUnavailable on connection failure, timeout, or I/O error.
     Result<HttpResponse> get(
         std::string_view path,
         const std::vector<HttpHeader>& headers = {}) const;
 
     /// Performs a synchronous HTTP POST request.  May block.
+    ///
+    /// @retval kFailedPrecondition when the client is closed or the redirect
+    /// limit is exceeded.
+    /// @retval kCancelled when the request is cancelled.
+    /// @retval kUnavailable on connection failure, timeout, or I/O error.
     Result<HttpResponse> post(
         std::string_view path,
         std::string_view body,
@@ -128,6 +138,11 @@ public:
         const std::vector<HttpHeader>& headers = {}) const;
 
     /// Performs a synchronous HTTP PUT request.  May block.
+    ///
+    /// @retval kFailedPrecondition when the client is closed or the redirect
+    /// limit is exceeded.
+    /// @retval kCancelled when the request is cancelled.
+    /// @retval kUnavailable on connection failure, timeout, or I/O error.
     Result<HttpResponse> put(
         std::string_view path,
         std::string_view body,
@@ -135,6 +150,11 @@ public:
         const std::vector<HttpHeader>& headers = {}) const;
 
     /// Performs a synchronous HTTP DELETE request.  May block.
+    ///
+    /// @retval kFailedPrecondition when the client is closed or the redirect
+    /// limit is exceeded.
+    /// @retval kCancelled when the request is cancelled.
+    /// @retval kUnavailable on connection failure, timeout, or I/O error.
     Result<HttpResponse> del(
         std::string_view path,
         const std::vector<HttpHeader>& headers = {}) const;

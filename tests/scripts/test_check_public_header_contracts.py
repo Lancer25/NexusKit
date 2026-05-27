@@ -100,6 +100,36 @@ class PublicHeaderContractsCheckerTest(unittest.TestCase):
             messages,
         )
 
+    def test_reports_result_method_missing_error_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header = root / "include" / "nexus" / "net" / "tcp.h"
+            header.parent.mkdir(parents=True)
+            header.write_text(
+                "namespace nexus::net {\n"
+                "class NEXUS_NET_API TcpClient {\n"
+                "public:\n"
+                "    /// Reads up to `max_bytes` from the socket.\n"
+                "    ///\n"
+                "    /// @return The received bytes on success.\n"
+                "    Result<std::string> read_some(std::size_t max_bytes);\n"
+                "private:\n"
+                "    Result<std::string> read_impl(std::size_t max_bytes);\n"
+                "};\n"
+                "} // namespace nexus::net\n",
+                encoding="utf-8",
+            )
+
+            messages = check_repo(root)
+
+        self.assertEqual(
+            [
+                "result-error-contracts: include/nexus/net/tcp.h:7: "
+                "read_some must document expected Result error status codes"
+            ],
+            messages,
+        )
+
     def test_accepts_empty_repository_layout(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual([], check_repo(Path(tmp)))

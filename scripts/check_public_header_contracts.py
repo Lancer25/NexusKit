@@ -53,10 +53,36 @@ HANDLER_NAME_RE = re.compile(r"^\s*using\s+(\w*Handler)\s*=")
 ENUM_RE = re.compile(r"^\s*enum\s+class\s+(?:NEXUS_\w+_API\s+)?(\w+)\s*\{")
 ENUM_VALUE_RE = re.compile(r"^\s*(\w+)\s*(?:=\s*[^,]+)?\s*,?\s*$")
 CLASS_RE = re.compile(r"^\s*(class|struct)\s+(?:NEXUS_\w+_API\s+)?(\w+)\b")
+RESULT_DECL_RE = re.compile(
+    r"^\s*(?:static\s+)?(?:NEXUS_\w+_API\s+)?Result<.+>\s+(\w+)\s*\("
+)
 ZERO_TIMEOUT_FIELD_RE = re.compile(
     r"^\s*std::chrono::milliseconds\s+(\w*timeout)\s*\{\s*0\s*\}\s*;"
 )
 DASH_PUNCTUATION = ("\u2014", "\u2013")
+ERROR_STATUS_TOKENS = (
+    "@retval",
+    "StatusCode::kInvalidArgument",
+    "StatusCode::kNotFound",
+    "StatusCode::kAlreadyExists",
+    "StatusCode::kPermissionDenied",
+    "StatusCode::kResourceExhausted",
+    "StatusCode::kFailedPrecondition",
+    "StatusCode::kUnavailable",
+    "StatusCode::kCancelled",
+    "StatusCode::kInternal",
+    "StatusCode::kUnknown",
+    "`kInvalidArgument`",
+    "`kNotFound`",
+    "`kAlreadyExists`",
+    "`kPermissionDenied`",
+    "`kResourceExhausted`",
+    "`kFailedPrecondition`",
+    "`kUnavailable`",
+    "`kCancelled`",
+    "`kInternal`",
+    "`kUnknown`",
+)
 
 
 def has_doxygen(lines: list[str], index: int) -> bool:
@@ -163,6 +189,54 @@ def check_move_only_ownership_contracts(root: Path) -> list[str]:
     return messages
 
 
+def check_result_error_contracts(root: Path) -> list[str]:
+    messages = []
+    header_root = root / PUBLIC_HEADER_ROOT
+    if not header_root.exists():
+        return messages
+    for path in sorted(header_root.rglob("*.h")):
+        relative = path.relative_to(root).as_posix()
+        lines = path.read_text(encoding="utf-8").splitlines()
+        class_name = None
+        in_public = True
+        brace_depth = 0
+        for index, line in enumerate(lines):
+            stripped = line.strip()
+            if class_name is None:
+                class_match = CLASS_RE.match(stripped)
+                if class_match and "{" in stripped:
+                    class_name = class_match.group(2)
+                    in_public = class_match.group(1) == "struct"
+                    brace_depth = stripped.count("{") - stripped.count("}")
+                    continue
+                in_public = True
+            else:
+                brace_depth += stripped.count("{") - stripped.count("}")
+                if brace_depth <= 0:
+                    class_name = None
+                    in_public = True
+                    continue
+                if stripped == "public:":
+                    in_public = True
+                    continue
+                if stripped in ("private:", "protected:"):
+                    in_public = False
+                    continue
+
+            if not in_public:
+                continue
+            match = RESULT_DECL_RE.match(stripped)
+            if not match:
+                continue
+            comment = " ".join(doxygen_block(lines, index))
+            if not any(token in comment for token in ERROR_STATUS_TOKENS):
+                messages.append(
+                    f"{relative}:{index + 1}: {match.group(1)} "
+                    "must document expected Result error status codes"
+                )
+    return messages
+
+
 def check_tracked_enum_values(root: Path) -> list[str]:
     messages = []
     for relative, enum_names in ENUMS.items():
@@ -262,6 +336,7 @@ def check_repo(root: Path) -> list[str]:
         ("callback-threading", check_net_callback_threading_contracts),
         ("zero-timeout-fields", check_net_zero_timeout_field_contracts),
         ("move-only-ownership", check_move_only_ownership_contracts),
+        ("result-error-contracts", check_result_error_contracts),
         ("enum-values", check_tracked_enum_values),
         ("lifecycle", check_tracked_lifecycle_methods),
         ("dash-punctuation", check_public_header_dash_punctuation),

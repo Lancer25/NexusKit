@@ -53,6 +53,8 @@ public:
     static Result<std::vector<AudioDevice>> enumerate_input_devices();
 
     /// Returns the system default audio input device.
+    ///
+    /// @retval kNotFound when no default input device is available.
     static Result<AudioDevice> default_input_device();
 
     /// Starts audio capture.  Frames are delivered via `handler` on an

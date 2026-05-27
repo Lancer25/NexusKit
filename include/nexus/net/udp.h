@@ -144,6 +144,10 @@ public:
     Result<UdpDatagram> receive_from(std::size_t max_bytes);
 
     /// Receives a datagram with an explicit receive timeout.  May block.
+    ///
+    /// @retval kInvalidArgument when `max_bytes` is zero.
+    /// @retval kFailedPrecondition when the socket is closed.
+    /// @retval kUnavailable on receive error or timeout.
     Result<UdpDatagram> receive_from(std::size_t max_bytes,
                                      const UdpReceiveOptions& options);
 

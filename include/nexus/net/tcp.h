@@ -173,6 +173,12 @@ public:
     Result<std::string> read_some(std::size_t max_bytes);
 
     /// Reads up to `max_bytes` from the socket with an I/O timeout.
+    ///
+    /// @return The received bytes on success.  Returns an empty string when the
+    /// remote side has closed gracefully.
+    /// @retval kInvalidArgument when `max_bytes` is zero.
+    /// @retval kFailedPrecondition when the client is closed or not connected.
+    /// @retval kUnavailable on socket error or timeout.
     Result<std::string> read_some(std::size_t max_bytes, const TcpIoOptions& options);
 
     /// Writes all bytes from `data` to the socket with no explicit timeout.
