@@ -219,6 +219,36 @@ class PublicHeaderContractsCheckerTest(unittest.TestCase):
             messages,
         )
 
+    def test_reports_screen_frame_missing_layout_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header = root / "include" / "nexus" / "screen" / "screen.h"
+            header.parent.mkdir(parents=True)
+            header.write_text(
+                "namespace nexus::screen {\n"
+                "/// A captured screen frame.\n"
+                "struct ScreenFrame {\n"
+                "    /// Frame width in pixels.\n"
+                "    int width = 0;\n"
+                "    /// Frame height in pixels.\n"
+                "    int height = 0;\n"
+                "    /// Pixel data.\n"
+                "    std::vector<std::uint8_t> data;\n"
+                "};\n"
+                "} // namespace nexus::screen\n",
+                encoding="utf-8",
+            )
+
+            messages = check_repo(root)
+
+        self.assertEqual(
+            [
+                "screen-frame-layout: include/nexus/screen/screen.h:3: "
+                "ScreenFrame must document contiguous pixel data and width * height * 4 byte sizing"
+            ],
+            messages,
+        )
+
     def test_accepts_empty_repository_layout(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual([], check_repo(Path(tmp)))

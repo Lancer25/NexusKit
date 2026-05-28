@@ -356,6 +356,25 @@ def check_screen_visible_window_contracts(root: Path) -> list[str]:
     return messages
 
 
+def check_screen_frame_layout_contracts(root: Path) -> list[str]:
+    messages = []
+    relative = "include/nexus/screen/screen.h"
+    path = root / relative
+    if not path.exists():
+        return messages
+    lines = path.read_text(encoding="utf-8").splitlines()
+    for index, line in enumerate(lines):
+        if line.strip().startswith("struct ScreenFrame"):
+            comment = " ".join(doxygen_block(lines, index)).lower()
+            required = ("contiguous", "data.size()", "width * height * 4")
+            if not all(token in comment for token in required):
+                messages.append(
+                    f"{relative}:{index + 1}: ScreenFrame "
+                    "must document contiguous pixel data and width * height * 4 byte sizing"
+                )
+    return messages
+
+
 def check_tracked_enum_values(root: Path) -> list[str]:
     messages = []
     for relative, enum_names in ENUMS.items():
@@ -459,6 +478,7 @@ def check_repo(root: Path) -> list[str]:
         ("status-error-contracts", check_status_error_contracts),
         ("opaque-identifiers", check_opaque_identifier_contracts),
         ("screen-visible-window", check_screen_visible_window_contracts),
+        ("screen-frame-layout", check_screen_frame_layout_contracts),
         ("enum-values", check_tracked_enum_values),
         ("lifecycle", check_tracked_lifecycle_methods),
         ("dash-punctuation", check_public_header_dash_punctuation),
