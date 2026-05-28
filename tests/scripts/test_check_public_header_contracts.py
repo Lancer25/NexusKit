@@ -249,6 +249,33 @@ class PublicHeaderContractsCheckerTest(unittest.TestCase):
             messages,
         )
 
+    def test_reports_media_frame_missing_layout_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header = root / "include" / "nexus" / "media" / "media.h"
+            header.parent.mkdir(parents=True)
+            header.write_text(
+                "namespace nexus::media {\n"
+                "/// A decoded audio or video frame.\n"
+                "struct MediaFrame {\n"
+                "    /// Frame bytes.\n"
+                "    std::vector<std::uint8_t> data;\n"
+                "};\n"
+                "} // namespace nexus::media\n",
+                encoding="utf-8",
+            )
+
+            messages = check_repo(root)
+
+        self.assertEqual(
+            [
+                "media-frame-layout: include/nexus/media/media.h:3: "
+                "MediaFrame must document packed audio, planar audio, "
+                "backend-native video bytes, and convert_video_frame normalization"
+            ],
+            messages,
+        )
+
     def test_accepts_empty_repository_layout(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual([], check_repo(Path(tmp)))

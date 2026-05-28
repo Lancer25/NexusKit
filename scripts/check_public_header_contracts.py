@@ -375,6 +375,31 @@ def check_screen_frame_layout_contracts(root: Path) -> list[str]:
     return messages
 
 
+def check_media_frame_layout_contracts(root: Path) -> list[str]:
+    messages = []
+    relative = "include/nexus/media/media.h"
+    path = root / relative
+    if not path.exists():
+        return messages
+    lines = path.read_text(encoding="utf-8").splitlines()
+    for index, line in enumerate(lines):
+        if line.strip().startswith("struct MediaFrame"):
+            comment = " ".join(doxygen_block(lines, index)).lower()
+            required = (
+                "packed audio",
+                "planar audio",
+                "backend-native",
+                "convert_video_frame",
+            )
+            if not all(token in comment for token in required):
+                messages.append(
+                    f"{relative}:{index + 1}: MediaFrame "
+                    "must document packed audio, planar audio, "
+                    "backend-native video bytes, and convert_video_frame normalization"
+                )
+    return messages
+
+
 def check_tracked_enum_values(root: Path) -> list[str]:
     messages = []
     for relative, enum_names in ENUMS.items():
@@ -479,6 +504,7 @@ def check_repo(root: Path) -> list[str]:
         ("opaque-identifiers", check_opaque_identifier_contracts),
         ("screen-visible-window", check_screen_visible_window_contracts),
         ("screen-frame-layout", check_screen_frame_layout_contracts),
+        ("media-frame-layout", check_media_frame_layout_contracts),
         ("enum-values", check_tracked_enum_values),
         ("lifecycle", check_tracked_lifecycle_methods),
         ("dash-punctuation", check_public_header_dash_punctuation),

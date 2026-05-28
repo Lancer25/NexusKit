@@ -79,6 +79,12 @@ class PublicHeaderContractsTest(unittest.TestCase):
             check_public_header_contracts.check_screen_frame_layout_contracts(Path(".")),
         )
 
+    def test_media_frame_documents_data_layout_contract(self):
+        self.assertEqual(
+            [],
+            check_public_header_contracts.check_media_frame_layout_contracts(Path(".")),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
