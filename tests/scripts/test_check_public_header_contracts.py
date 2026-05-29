@@ -307,6 +307,32 @@ class PublicHeaderContractsCheckerTest(unittest.TestCase):
             messages,
         )
 
+    def test_reports_screen_cursor_option_missing_best_effort_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header = root / "include" / "nexus" / "screen" / "screen.h"
+            header.parent.mkdir(parents=True)
+            header.write_text(
+                "namespace nexus::screen {\n"
+                "struct ScreenCaptureOptions {\n"
+                "    /// Include the cursor.\n"
+                "    bool include_cursor = false;\n"
+                "};\n"
+                "} // namespace nexus::screen\n",
+                encoding="utf-8",
+            )
+
+            messages = check_repo(root)
+
+        self.assertEqual(
+            [
+                "screen-cursor-option: include/nexus/screen/screen.h:4: "
+                "include_cursor must document Windows best-effort cursor "
+                "composition and non-failing capture semantics"
+            ],
+            messages,
+        )
+
     def test_accepts_empty_repository_layout(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual([], check_repo(Path(tmp)))

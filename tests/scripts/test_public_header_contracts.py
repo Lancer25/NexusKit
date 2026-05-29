@@ -91,6 +91,12 @@ class PublicHeaderContractsTest(unittest.TestCase):
             check_public_header_contracts.check_screen_region_contracts(Path(".")),
         )
 
+    def test_screen_cursor_option_documents_best_effort_contract(self):
+        self.assertEqual(
+            [],
+            check_public_header_contracts.check_screen_cursor_option_contracts(Path(".")),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

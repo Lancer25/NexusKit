@@ -61,6 +61,7 @@ Each implementation phase should be small, testable, and documented.
 - Phase 13E-13K: Repository text and documentation hygiene checks for UTF-8 policy, final newlines, trailing whitespace, UTF-8 BOMs, CI docs test discovery, `.gitattributes`, policy files, and `.gitignore`.
 - Phase 14A: Public API contract checks for net callback threading, zero timeout fields, and move-only ownership semantics.
 - Phase 14B: Public API contract checks for `Result<T>` and non-lifecycle `Status` error semantics.
+- Phase 14C: Module-specific public API contract checks for screen/media layout, capture, platform, identifier, and visibility semantics.
 
 ## Near-Term Roadmap
 
@@ -68,7 +69,8 @@ Each implementation phase should be small, testable, and documented.
 
 - Phase 13A: Add a CI/build matrix and packaging checks for default, optional-module, and release configurations.
 - Phase 13B: Fill example coverage for modules with stable public APIs, starting with media mux/remux workflows and audio/camera smoke examples.
-- Phase 14C: Extend public API contract checks for module-specific invariants and platform behavior notes.
+- Phase 14D: Keep release-facing roadmap docs synchronized as completed API contract phases move out of future work.
+- Phase 15A: Expand example coverage for stable media, screen, audio, camera, and net workflows.
 
 ### Media Follow-Ups
 

@@ -395,6 +395,26 @@ def check_screen_region_contracts(root: Path) -> list[str]:
     return messages
 
 
+def check_screen_cursor_option_contracts(root: Path) -> list[str]:
+    messages = []
+    relative = "include/nexus/screen/screen.h"
+    path = root / relative
+    if not path.exists():
+        return messages
+    lines = path.read_text(encoding="utf-8").splitlines()
+    for index, line in enumerate(lines):
+        if "bool include_cursor" in line:
+            comment = " ".join(doxygen_block(lines, index)).lower()
+            required = ("windows", "best-effort", "cursor", "does not fail")
+            if not all(token in comment for token in required):
+                messages.append(
+                    f"{relative}:{index + 1}: include_cursor "
+                    "must document Windows best-effort cursor composition "
+                    "and non-failing capture semantics"
+                )
+    return messages
+
+
 def check_media_frame_layout_contracts(root: Path) -> list[str]:
     messages = []
     relative = "include/nexus/media/media.h"
@@ -525,6 +545,7 @@ def check_repo(root: Path) -> list[str]:
         ("screen-visible-window", check_screen_visible_window_contracts),
         ("screen-frame-layout", check_screen_frame_layout_contracts),
         ("screen-region", check_screen_region_contracts),
+        ("screen-cursor-option", check_screen_cursor_option_contracts),
         ("media-frame-layout", check_media_frame_layout_contracts),
         ("enum-values", check_tracked_enum_values),
         ("lifecycle", check_tracked_lifecycle_methods),
