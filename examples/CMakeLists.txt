@@ -14,6 +14,7 @@ endif()
 
 if(TARGET nexus::media)
     add_subdirectory(media_probe)
+    add_subdirectory(media_remux)
 endif()
 
 if(TARGET nexus::screen)

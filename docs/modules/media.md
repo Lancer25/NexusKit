@@ -68,14 +68,16 @@ Public `nexus_media` headers do not expose FFmpeg headers or FFmpeg ownership ty
 
 ## Example
 
-When `NEXUS_BUILD_EXAMPLES=ON` and `NEXUS_ENABLE_MEDIA=ON`, NexusKit builds `nexus_example_media_probe`.
+When `NEXUS_BUILD_EXAMPLES=ON` and `NEXUS_ENABLE_MEDIA=ON`, NexusKit builds `nexus_example_media_probe` and `nexus_example_media_remux`.
 
 ```powershell
 nexus_example_media_probe
 nexus_example_media_probe input.mp4
+nexus_example_media_remux input.mp4 output.mkv
 ```
 
 The example prints FFmpeg backend status and, when a media path is provided, probes container and stream metadata through the public `nexus_media` API.
+The remux example copies all streams from one container to another through `remux_file` without decoding or encoding.
 
 ### Media Muxer
 

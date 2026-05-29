@@ -90,6 +90,7 @@ See [Build Guide](docs/build.md) for detailed dependency requirements and Linux 
 | `nexus_example_screen_capture` | nexus_screen | Captures a display/window/region frame to a PPM image |
 | `nexus_example_usb_hotplug` | nexus_usb | Lists USB devices and watches arrival/removal events |
 | `nexus_example_media_probe` | nexus_media | Shows FFmpeg backend status and probes media metadata through `nexus_media` |
+| `nexus_example_media_remux` | nexus_media | Copies media streams into a new container without decoding or encoding |
 | `nexus_example_audio_probe` | nexus_audio | Lists input/output audio devices and defaults |
 | `nexus_example_camera_probe` | nexus_camera | Lists camera devices and the default camera |
 
@@ -108,6 +109,12 @@ USB hotplug usage:
 ```powershell
 nexus_example_usb_hotplug --list
 nexus_example_usb_hotplug --watch --seconds 30
+```
+
+Media remux usage:
+
+```powershell
+nexus_example_media_remux input.mp4 output.mkv
 ```
 
 ## Documentation
