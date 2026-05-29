@@ -85,6 +85,12 @@ class PublicHeaderContractsTest(unittest.TestCase):
             check_public_header_contracts.check_media_frame_layout_contracts(Path(".")),
         )
 
+    def test_screen_region_documents_capture_contract(self):
+        self.assertEqual(
+            [],
+            check_public_header_contracts.check_screen_region_contracts(Path(".")),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

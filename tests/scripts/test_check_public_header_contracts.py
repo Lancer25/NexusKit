@@ -276,6 +276,37 @@ class PublicHeaderContractsCheckerTest(unittest.TestCase):
             messages,
         )
 
+    def test_reports_screen_region_missing_capture_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header = root / "include" / "nexus" / "screen" / "screen.h"
+            header.parent.mkdir(parents=True)
+            header.write_text(
+                "namespace nexus::screen {\n"
+                "/// Region for capture.\n"
+                "struct ScreenCaptureRegion {\n"
+                "    /// Target display id.\n"
+                "    std::string display_id;\n"
+                "    /// Left offset.\n"
+                "    int x = 0;\n"
+                "    /// Crop width.\n"
+                "    int width = 0;\n"
+                "};\n"
+                "} // namespace nexus::screen\n",
+                encoding="utf-8",
+            )
+
+            messages = check_repo(root)
+
+        self.assertEqual(
+            [
+                "screen-region: include/nexus/screen/screen.h:3: "
+                "ScreenCaptureRegion must document display-relative coordinates, "
+                "empty display_id primary display behavior, and positive dimensions"
+            ],
+            messages,
+        )
+
     def test_accepts_empty_repository_layout(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual([], check_repo(Path(tmp)))

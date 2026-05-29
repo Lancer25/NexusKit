@@ -110,7 +110,7 @@ struct ScreenWindow {
 /// Display-relative rectangle for `capture_region`.
 ///
 /// Leave `display_id` empty to target the primary display, or set it to a
-/// value from `displays()`.
+/// value from `displays()`.  Crop dimensions must be positive.
 struct ScreenCaptureRegion {
     /// Target display id.  Empty means primary display.
     std::string display_id;
